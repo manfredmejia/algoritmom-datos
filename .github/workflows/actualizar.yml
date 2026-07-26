@@ -1,0 +1,36 @@
+name: Auto-Actualizador de Loterías ALGORITMOM
+
+on:
+  schedule:
+    # 11:30 PM Hora Colombia (UTC-5) equivale a las 04:30 AM UTC del día siguiente
+    - cron: '30 4 * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente cuando quieras con un botón
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar Repositorio
+        uses: actions/checkout@v3
+
+      - name: Configurar Entorno Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar Librerías de Scraping
+        run: |
+          python -m pip install --upgrade pip
+          pip install beautifulsoup4 requests
+
+      - name: Ejecutar Scraper de Loterías
+        run: python scraper.py
+
+      - name: Confirmar y Guardar Cambios en GitHub
+        run: |
+          git config --global user.name "Bot Algoritmom"
+          git config --global user.email "bot@algoritmom.com"
+          git add sorteos.json
+          git commit -m "Auto-actualización de sorteos: $(date +'%Y-%m-%d')" || exit 0
+          git push
