@@ -1,57 +1,53 @@
 import json
 import os
-import re
 import urllib.request
 from datetime import datetime
 from bs4 import BeautifulSoup
 
 FECHA_HOY = datetime.now().strftime("%Y-%m-%d")
 
+# 🛡️ LISTA BLANCA OFICIAL: Solo estas loterías entrarán a la IA
+LOTERIAS_PERMITIDAS = [
+    # Disipadores y Nocturnos (Chance)
+    "DORADO MAÑANA",
+    "CHONTICO DÍA",
+    "CHONTICO DIA",
+    "PAISITA DÍA",
+    "PAISITA DIA",
+    "DORADO TARDE",
+    "CAFETERITO TARDE",
+    "SINUANO DÍA",
+    "SINUANO DIA",
+    "PAISITA NOCHE",
+    "CHONTICO NOCHE",
+    "CAFETERITO NOCHE",
+    # Filtro Astro
+    "ASTRO SOL",
+    "ASTRO LUNA",
+    # Loterías Principales
+    "CRUZ ROJA",
+    "HUILA",
+    "META",
+    "SANTANDER",
+    "BOGOTA",
+    "VALLE",
+    "MANIZALES",
+    "CUNDINAMARCA",
+    "MEDELLIN",
+    "RISARALDA",
+    "BOYACA",
+    "CAUCA",
+    "TOLIMA",
+]
 
-def extraer_resultados_oficiales():
-    """
-    Descarga el HTML de un portal confiable de resultados colombianos
-    y lee directamente las etiquetas con los números ganadores reales.
-    """
-    resultados = []
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
 
-    # Ejemplo apuntando a un agregador público verificado
-    url = "https://www.loteriascolombia.com/"
-
-    try:
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=15) as response:
-            html = response.read().decode("utf-8")
-            soup = BeautifulSoup(html, "html.parser")
-
-            # Buscamos los bloques donde se publican las loterías
-            # (El selector se adapta según la estructura exacta de la web)
-            for bloque in soup.find_all("div", class_="sorteo-block"):
-                nombre_elem = bloque.find("span", class_="nombre-sorteo")
-                numero_elem = bloque.find("span", class_="numero-ganador")
-
-                if nombre_elem and numero_elem:
-                    sorteo = nombre_elem.text.strip().upper()
-                    resultado = numero_elem.text.strip()
-
-                    # Guardamos el dato extraído tal cual aparece en pantalla
-                    resultados.append(
-                        {
-                            "fecha": FECHA_HOY,
-                            "sorteo": sorteo,
-                            "resultado": resultado,
-                        }
-                    )
-
-    except Exception as e:
-        print(
-            f"[SCRAPER] Error de lectura web: {e}. No se realizarán cambios erróneos."
-        )
-
-    return resultados
+def normalizar_nombre(nombre_sorteo):
+    """Limpia el texto para comparar de forma exacta."""
+    nombre = nombre_sorteo.strip().upper()
+    nombre = nombre.replace("Á", "A").replace("É", "E").replace(
+        "Í", "I"
+    ).replace("Ó", "O").replace("Ú", "U")
+    return nombre
 
 
 def actualizar_sorteos_json():
@@ -65,19 +61,36 @@ def actualizar_sorteos_json():
         except Exception:
             existentes = []
 
-    # Extraer datos reales
-    nuevos = extraer_resultados_oficiales()
+    # Supongamos que 'nuevos' trae la lista extraída de la web
+    nuevos_extraidos = (
+        extraer_resultados_oficiales()
+    )  # Tu función de scraping
+    nuevos_filtrados = []
 
-    if not nuevos:
-        print("[SCRAPER] No se obtuvieron datos nuevos hoy.")
+    # 🚨 FILTRADO QUIRÚRGICO: Descarte automático de loterías no deseadas
+    for item in nuevos_extraidos:
+        sorteo_clean = normalizar_nombre(item["sorteo"])
+
+        if sorteo_clean in LOTERIAS_PERMITIDAS:
+            item["sorteo"] = (
+                sorteo_clean  # Guardar con el nombre estandarizado
+            )
+            nuevos_filtrados.append(item)
+        else:
+            print(
+                f"[FILTRO IA] Sorteo ignorado para evitar contaminación: {item['sorteo']}"
+            )
+
+    if not nuevos_filtrados:
+        print("[SCRAPER] No hay sorteos permitidos nuevos para registrar.")
         return
 
-    # Mapear claves existentes (Fecha + Sorteo) para no duplicar datos
-    claves = {f"{s['fecha']}_{s['sorteo'].upper()}" for s in existentes}
+    # Mapear claves (Fecha + Sorteo) para evitar duplicados
+    claves = {f"{s['fecha']}_{s['sorteo']}" for s in existentes}
 
     agregados = 0
-    for item in nuevos:
-        clave = f"{item['fecha']}_{item['sorteo'].upper()}"
+    for item in nuevos_filtrados:
+        clave = f"{item['fecha']}_{item['sorteo']}"
         if clave not in claves:
             existentes.append(item)
             agregados += 1
@@ -85,9 +98,9 @@ def actualizar_sorteos_json():
     if agregados > 0:
         with open(archivo, "w", encoding="utf-8") as f:
             json.dump(existentes, f, ensure_ascii=False, indent=2)
-        print(f"[SCRAPER] ✅ Se guardaron {agregados} sorteos reales nuevos.")
-    else:
-        print("[SCRAPER] La base de datos de GitHub ya estaba al día.")
+        print(
+            f"[SCRAPER] ✅ Se guardaron {agregados} sorteos limpios y compatibles con la IA."
+        )
 
 
 if __name__ == "__main__":
