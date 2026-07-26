@@ -83,6 +83,12 @@ def actualizar_sorteos_json():
         except Exception:
             existentes = []
 
+    if agregados == 0 and len(existentes) > 0:
+        # Esto forzará un error simulado para que GitHub te envíe un email de alerta
+        raise ValueError(
+            "[ALERTA] No se extrajo ningún sorteo hoy. Posible cambio de diseño web."
+        )
+
     # 1. Obtener extracciones crudas de la web
     brutos = extraer_resultados_oficiales()
     filtrados = []
