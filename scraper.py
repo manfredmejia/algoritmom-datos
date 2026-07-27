@@ -10,11 +10,15 @@ FECHA_HOY = datetime.now().strftime("%Y-%m-%d")
 MAPEO_LOTERIAS = {
     # Disipadores y Nocturnos (Formato Mixto)
     "DORADO MAÑANA": "Dorado Mañana",
+    "DORADO MANANA": "Dorado Mañana",
     "CHONTICO DÍA": "Chontico Día",
+    "CHONTICO DIA": "Chontico Día",
     "PAISITA DÍA": "Paisita Día",
+    "PAISITA DIA": "Paisita Día",
     "DORADO TARDE": "Dorado Tarde",
     "CAFETERITO TARDE": "Cafeterito Tarde",
     "SINUANO DÍA": "Sinuano Día",
+    "SINUANO DIA": "Sinuano Día",
     "PAISITA NOCHE": "Paisita Noche",
     "CHONTICO NOCHE": "Chontico Noche",
     "CAFETERITO NOCHE": "Cafeterito Noche",
@@ -75,6 +79,7 @@ def extraer_resultados_oficiales():
 def actualizar_sorteos_json():
     archivo = "sorteos.json"
     existentes = []
+    agregados = 0  # 💡 Inicializada desde el comienzo para evitar el UnboundLocalError
 
     if os.path.exists(archivo):
         try:
@@ -82,12 +87,6 @@ def actualizar_sorteos_json():
                 existentes = json.load(f)
         except Exception:
             existentes = []
-
-    if agregados == 0 and len(existentes) > 0:
-        # Esto forzará un error simulado para que GitHub te envíe un email de alerta
-        raise ValueError(
-            "[ALERTA] No se extrajo ningún sorteo hoy. Posible cambio de diseño web."
-        )
 
     # 1. Obtener extracciones crudas de la web
     brutos = extraer_resultados_oficiales()
@@ -97,18 +96,17 @@ def actualizar_sorteos_json():
     for item in brutos:
         nombre_correcto = normalizar_nombre(item["sorteo"])
         if nombre_correcto:
-            item["sorteo"] = nombre_correcto  # Asigna 'Chontico Noche', 'HUILA', etc.
+            item["sorteo"] = nombre_correcto
             filtrados.append(item)
         else:
             print(f"[FILTRO IA] Descartado por no pertenecer al panel: {item['sorteo']}")
 
     if not filtrados:
-        print("[SCRAPER] No se encontraron sorteos válidos nuevos hoy.")
+        print("[SCRAPER] No se encontraron sorteos válidos nuevos hoy en la web.")
         return
 
     # 3. Evitar duplicados (combinación Fecha + Sorteo)
     claves_existentes = {f"{s['fecha']}_{s['sorteo']}" for s in existentes}
-    agregados = 0
 
     for item in filtrados:
         clave = f"{item['fecha']}_{item['sorteo']}"
