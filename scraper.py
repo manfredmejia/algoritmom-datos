@@ -1,14 +1,15 @@
 import json
 import os
+import re
 import urllib.request
 from datetime import datetime
 from bs4 import BeautifulSoup
 
 FECHA_HOY = datetime.now().strftime("%Y-%m-%d")
 
-# 🗺️ MAPEO OFICIAL: Convierte y filtra los sorteos al formato exacto de tu interfaz
+# 🗺️ MAPEO OFICIAL: Mantiene limpia la IA y estandariza los nombres para tu interfaz
 MAPEO_LOTERIAS = {
-    # Disipadores y Nocturnos (Formato Mixto)
+    # Disipadores y Nocturnos (Chance)
     "DORADO MAÑANA": "Dorado Mañana",
     "DORADO MANANA": "Dorado Mañana",
     "CHONTICO DÍA": "Chontico Día",
@@ -27,7 +28,7 @@ MAPEO_LOTERIAS = {
     "ASTRO SOL": "Astro Sol",
     "ASTRO LUNA": "Astro Luna",
 
-    # Loterías Principales (MAYÚSCULAS SOSTENIDAS)
+    # Loterías Principales (MAYÚSCULAS)
     "CRUZ ROJA": "CRUZ ROJA",
     "HUILA": "HUILA",
     "META": "META",
@@ -44,16 +45,20 @@ MAPEO_LOTERIAS = {
 }
 
 def normalizar_nombre(nombre_sorteo):
-    """Limpia tildes, convierte a mayúsculas y busca en el mapa si el sorteo es permitido."""
+    """Limpia tildes, convierte a mayúsculas y verifica si pertenece al panel."""
     clave = nombre_sorteo.strip().upper()
     clave = clave.replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
     return MAPEO_LOTERIAS.get(clave, None)
 
 def extraer_resultados_oficiales():
-    """Busca en la web los resultados crudos del día."""
+    """Busca en ganarchance.com los resultados reales del día."""
     resultados = []
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    url = "https://www.loteriascolombia.com/"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+
+    # URL oficial de GanarChance
+    url = "https://www.ganarchance.com/"
 
     try:
         req = urllib.request.Request(url, headers=headers)
@@ -61,25 +66,37 @@ def extraer_resultados_oficiales():
             html = response.read().decode("utf-8")
             soup = BeautifulSoup(html, "html.parser")
 
-            for bloque in soup.find_all("div", class_="sorteo-block"):
-                nombre_elem = bloque.find("span", class_="nombre-sorteo")
-                numero_elem = bloque.find("span", class_="numero-ganador")
+            # 🔍 Búsqueda de bloques de sorteos en la estructura HTML de ganarchance.com
+            # Busca elementos contenedores donde se publican el nombre del sorteo y el número ganador
+            for bloque in soup.find_all(
+                ["div", "tr", "li"], class_=["resultado", "sorteo", "item"]
+            ):
+                texto = bloque.get_text(separator=" ").strip()
+                lineas = [line.strip() for line in texto.split("\n") if line.strip()]
 
-                if nombre_elem and numero_elem:
-                    resultados.append({
-                        "fecha": FECHA_HOY,
-                        "sorteo": nombre_elem.text.strip(),
-                        "resultado": numero_elem.text.strip()
-                    })
+                if len(lineas) >= 2:
+                    nombre_raw = lineas[0]
+                    numero_raw = lineas[1]
+
+                    # Validar que contenga números válidos
+                    if any(char.isdigit() for char in numero_raw):
+                        resultados.append(
+                            {
+                                "fecha": FECHA_HOY,
+                                "sorteo": nombre_raw,
+                                "resultado": numero_raw,
+                            }
+                        )
+
     except Exception as e:
-        print(f"[SCRAPER] Error leyendo la web: {e}")
+        print(f"[SCRAPER] Error leyendo ganarchance.com: {e}")
 
     return resultados
 
 def actualizar_sorteos_json():
     archivo = "sorteos.json"
     existentes = []
-    agregados = 0  # 💡 Inicializada desde el comienzo para evitar el UnboundLocalError
+    agregados = 0
 
     if os.path.exists(archivo):
         try:
@@ -88,24 +105,22 @@ def actualizar_sorteos_json():
         except Exception:
             existentes = []
 
-    # 1. Obtener extracciones crudas de la web
+    # 1. Extraer resultados reales
     brutos = extraer_resultados_oficiales()
     filtrados = []
 
-    # 2. Filtrar y formatear con el mapa
+    # 2. Filtrar con la Lista Blanca
     for item in brutos:
         nombre_correcto = normalizar_nombre(item["sorteo"])
         if nombre_correcto:
             item["sorteo"] = nombre_correcto
             filtrados.append(item)
-        else:
-            print(f"[FILTRO IA] Descartado por no pertenecer al panel: {item['sorteo']}")
 
     if not filtrados:
-        print("[SCRAPER] No se encontraron sorteos válidos nuevos hoy en la web.")
+        print("[SCRAPER] No se detectaron extracciones válidas en esta consulta.")
         return
 
-    # 3. Evitar duplicados (combinación Fecha + Sorteo)
+    # 3. Mapear existentes para evitar duplicar (Fecha + Sorteo)
     claves_existentes = {f"{s['fecha']}_{s['sorteo']}" for s in existentes}
 
     for item in filtrados:
@@ -114,13 +129,13 @@ def actualizar_sorteos_json():
             existentes.append(item)
             agregados += 1
 
-    # 4. Guardar en sorteos.json
+    # 4. Guardar los datos en el JSON
     if agregados > 0:
         with open(archivo, "w", encoding="utf-8") as f:
             json.dump(existentes, f, ensure_ascii=False, indent=2)
-        print(f"[SCRAPER] ✅ Se agregaron {agregados} sorteos compatibles con la IA.")
+        print(f"[SCRAPER] ✅ Se agregaron {agregados} sorteos reales a GitHub.")
     else:
-        print("[SCRAPER] El archivo JSON ya tenía todos los sorteos de hoy.")
+        print("[SCRAPER] El archivo JSON ya contenía todas las extracciones de hoy.")
 
 if __name__ == "__main__":
     actualizar_sorteos_json()
