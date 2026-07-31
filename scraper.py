@@ -7,57 +7,66 @@ from bs4 import BeautifulSoup
 
 FECHA_HOY = datetime.now().strftime("%Y-%m-%d")
 
-# 🗺️ MAPEO OFICIAL: Mantiene limpia la IA y estandariza los nombres para tu interfaz
-MAPEO_LOTERIAS = {
-    # Disipadores y Nocturnos (Chance)
-    "DORADO MAÑANA": "Dorado Mañana",
-    "DORADO MANANA": "Dorado Mañana",
-    "CHONTICO DÍA": "Chontico Día",
-    "CHONTICO DIA": "Chontico Día",
-    "PAISITA DÍA": "Paisita Día",
-    "PAISITA DIA": "Paisita Día",
-    "DORADO TARDE": "Dorado Tarde",
-    "CAFETERITO TARDE": "Cafeterito Tarde",
-    "SINUANO DÍA": "Sinuano Día",
-    "SINUANO DIA": "Sinuano Día",
-    "PAISITA NOCHE": "Paisita Noche",
-    "CHONTICO NOCHE": "Chontico Noche",
-    "CAFETERITO NOCHE": "Cafeterito Noche",
+# 🎯 REGLAS FLEXIBLES: Si el texto contiene Palabra1 Y Palabra2, se asigna el Nombre Oficial
+REGLAS_LOTERIAS = [
+    # (Palabra Clave 1, Palabra Clave 2, Nombre Oficial UI)
+    ("CHONTICO", "NOCHE", "Chontico Noche"),
+    ("CHONTICO", "DIA", "Chontico Día"),
+    ("DORADO", "MANANA", "Dorado Mañana"),
+    ("DORADO", "TARDE", "Dorado Tarde"),
+    ("PAISITA", "DIA", "Paisita Día"),
+    ("PAISITA", "NOCHE", "Paisita Noche"),
+    ("CAFETERITO", "TARDE", "Cafeterito Tarde"),
+    ("CAFETERITO", "NOCHE", "Cafeterito Noche"),
+    ("SINUANO", "DIA", "Sinuano Día"),
+    ("ASTRO", "SOL", "Astro Sol"),
+    ("ASTRO", "LUNA", "Astro Luna"),
+    ("HUILA", "", "HUILA"),
+    ("META", "", "META"),
+    ("VALLE", "", "VALLE"),
+    ("CRUZ", "ROJA", "CRUZ ROJA"),
+    ("BOGOTA", "", "BOGOTA"),
+    ("MEDELLIN", "", "MEDELLIN"),
+    ("SANTANDER", "", "SANTANDER"),
+    ("MANIZALES", "", "MANIZALES"),
+    ("CUNDINAMARCA", "", "CUNDINAMARCA"),
+    ("RISARALDA", "", "RISARALDA"),
+    ("BOYACA", "", "BOYACA"),
+    ("CAUCA", "", "CAUCA"),
+    ("TOLIMA", "", "TOLIMA"),
+]
 
-    # Filtro Astro
-    "ASTRO SOL": "Astro Sol",
-    "ASTRO LUNA": "Astro Luna",
 
-    # Loterías Principales (MAYÚSCULAS)
-    "CRUZ ROJA": "CRUZ ROJA",
-    "HUILA": "HUILA",
-    "META": "META",
-    "SANTANDER": "SANTANDER",
-    "BOGOTA": "BOGOTA",
-    "VALLE": "VALLE",
-    "MANIZALES": "MANIZALES",
-    "CUNDINAMARCA": "CUNDINAMARCA",
-    "MEDELLIN": "MEDELLIN",
-    "RISARALDA": "RISARALDA",
-    "BOYACA": "BOYACA",
-    "CAUCA": "CAUCA",
-    "TOLIMA": "TOLIMA"
-}
+def normalizar_texto(texto):
+    """Limpia tildes y caracteres especiales."""
+    txt = texto.strip().upper()
+    txt = (
+        txt.replace("Á", "A")
+        .replace("É", "E")
+        .replace("Í", "I")
+        .replace("Ó", "O")
+        .replace("Ú", "U")
+    )
+    return txt
 
-def normalizar_nombre(nombre_sorteo):
-    """Limpia tildes, convierte a mayúsculas y verifica si pertenece al panel."""
-    clave = nombre_sorteo.strip().upper()
-    clave = clave.replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
-    return MAPEO_LOTERIAS.get(clave, None)
+
+def identificar_sorteo(texto_bloque):
+    """Identifica la lotería por coincidencia parcial de palabras clave."""
+    txt_limpio = normalizar_texto(texto_bloque)
+
+    for p1, p2, nombre_oficial in REGLAS_LOTERIAS:
+        if p1 in txt_limpio and (p2 == "" or p2 in txt_limpio):
+            return nombre_oficial
+    return None
+
 
 def extraer_resultados_oficiales():
-    """Busca en ganarchance.com los resultados reales del día."""
     resultados = []
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     }
 
-    # URL oficial de GanarChance
+    # Intentar conexión con ganarchance.com
     url = "https://www.ganarchance.com/"
 
     try:
@@ -66,32 +75,55 @@ def extraer_resultados_oficiales():
             html = response.read().decode("utf-8")
             soup = BeautifulSoup(html, "html.parser")
 
-            # 🔍 Búsqueda de bloques de sorteos en la estructura HTML de ganarchance.com
-            # Busca elementos contenedores donde se publican el nombre del sorteo y el número ganador
+            # Analizar todos los contenedores de texto
             for bloque in soup.find_all(
-                ["div", "tr", "li"], class_=["resultado", "sorteo", "item"]
+                ["tr", "div", "li", "p", "td"], class_=True
             ):
-                texto = bloque.get_text(separator=" ").strip()
-                lineas = [line.strip() for line in texto.split("\n") if line.strip()]
+                texto = bloque.get_text(" ", strip=True)
 
-                if len(lineas) >= 2:
-                    nombre_raw = lineas[0]
-                    numero_raw = lineas[1]
+                # Verificar si el bloque contiene el nombre de algún sorteo de nuestro panel
+                sorteo_detectado = identificar_sorteo(texto)
 
-                    # Validar que contenga números válidos
-                    if any(char.isdigit() for char in numero_raw):
+                if sorteo_detectado:
+                    # Buscar número de 4 dígitos usando Expresiones Regulares (Regex)
+                    match_num = re.search(r"\b\d{4}\b", texto)
+                    if match_num:
+                        numero_ganador = match_num.group(0)
+
+                        # Si es un sorteo Astro, intentar extraer el signo
+                        if "Astro" in sorteo_detectado:
+                            signos = [
+                                "Aries",
+                                "Tauro",
+                                "Géminis",
+                                "Cáncer",
+                                "Leo",
+                                "Virgo",
+                                "Libra",
+                                "Escorpio",
+                                "Sagitario",
+                                "Capricornio",
+                                "Acuario",
+                                "Piscis",
+                            ]
+                            for s in signos:
+                                if s.lower() in texto.lower():
+                                    numero_ganador = f"{numero_ganador}-{s}"
+                                    break
+
                         resultados.append(
                             {
                                 "fecha": FECHA_HOY,
-                                "sorteo": nombre_raw,
-                                "resultado": numero_raw,
+                                "sorteo": sorteo_detectado,
+                                "resultado": numero_ganador,
                             }
                         )
 
     except Exception as e:
-        print(f"[SCRAPER] Error leyendo ganarchance.com: {e}")
+        print(f"[SCRAPER] Error de conexión: {e}")
 
     return resultados
+
 
 def actualizar_sorteos_json():
     archivo = "sorteos.json"
@@ -105,37 +137,34 @@ def actualizar_sorteos_json():
         except Exception:
             existentes = []
 
-    # 1. Extraer resultados reales
-    brutos = extraer_resultados_oficiales()
-    filtrados = []
+    nuevos = extraer_resultados_oficiales()
 
-    # 2. Filtrar con la Lista Blanca
-    for item in brutos:
-        nombre_correcto = normalizar_nombre(item["sorteo"])
-        if nombre_correcto:
-            item["sorteo"] = nombre_correcto
-            filtrados.append(item)
-
-    if not filtrados:
-        print("[SCRAPER] No se detectaron extracciones válidas en esta consulta.")
+    if not nuevos:
+        print("[SCRAPER] No se encontraron sorteos nuevos en la web hoy.")
         return
 
-    # 3. Mapear existentes para evitar duplicar (Fecha + Sorteo)
+    # Usar diccionario para evitar duplicados del mismo día y sorteo
     claves_existentes = {f"{s['fecha']}_{s['sorteo']}" for s in existentes}
 
-    for item in filtrados:
+    for item in nuevos:
         clave = f"{item['fecha']}_{item['sorteo']}"
         if clave not in claves_existentes:
             existentes.append(item)
+            claves_existentes.add(clave)
             agregados += 1
+            print(
+                f"[SCRAPER] Capturado: {item['sorteo']} -> {item['resultado']}"
+            )
 
-    # 4. Guardar los datos en el JSON
     if agregados > 0:
         with open(archivo, "w", encoding="utf-8") as f:
             json.dump(existentes, f, ensure_ascii=False, indent=2)
-        print(f"[SCRAPER] ✅ Se agregaron {agregados} sorteos reales a GitHub.")
+        print(f"[SCRAPER] ✅ Exito: {agregados} sorteos guardados en GitHub.")
     else:
-        print("[SCRAPER] El archivo JSON ya contenía todas las extracciones de hoy.")
+        print(
+            "[SCRAPER] Todos los sorteos capturados ya estaban registrados en el JSON."
+        )
+
 
 if __name__ == "__main__":
     actualizar_sorteos_json()
