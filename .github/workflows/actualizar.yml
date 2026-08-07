@@ -2,9 +2,12 @@ name: Auto-Actualizador de Loterías ALGORITMOM
 
 on:
   schedule:
-    # 11:30 PM Hora Colombia (UTC-5) equivale a las 04:30 AM UTC del día siguiente
     - cron: '30 4 * * *'
   workflow_dispatch:
+
+# 🚨 PERMISO DE ESCRITURA PARA EL BOT DE GITHUB
+permissions:
+  contents: write
 
 jobs:
   actualizar:
@@ -12,10 +15,10 @@ jobs:
 
     steps:
       - name: Descargar Repositorio
-        uses: actions/checkout@v4  # 👈 Actualizado a v4
+        uses: actions/checkout@v4
 
       - name: Configurar Entorno Python
-        uses: actions/setup-python@v5  # 👈 Actualizado a v5
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
