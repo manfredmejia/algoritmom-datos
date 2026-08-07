@@ -7,34 +7,39 @@ from bs4 import BeautifulSoup
 
 AÑO_ACTUAL = str(datetime.now().year)
 
-# 1. Chances del panel y Loterías Principales con sus URLs de historial directo
-LOTERIAS_MAPA = [
-    ("Chontico Día", "https://www.ganarchance.com/chontico-dia"),
-    ("Chontico Noche", "https://www.ganarchance.com/chontico-noche"),
-    ("Dorado Mañana", "https://www.ganarchance.com/dorado-manana"),
-    ("Dorado Tarde", "https://www.ganarchance.com/dorado-tarde"),
-    ("Paisita Día", "https://www.ganarchance.com/paisita-dia"),
-    ("Paisita Noche", "https://www.ganarchance.com/paisita-noche"),
-    ("Cafeterito Tarde", "https://www.ganarchance.com/cafeterito-tarde"),
-    ("Cafeterito Noche", "https://www.ganarchance.com/cafeterito-noche"),
-    ("Sinuano Día", "https://www.ganarchance.com/sinuano-dia"),
-    ("Astro Sol", "https://www.ganarchance.com/astro-sol"),
-    ("Astro Luna", "https://www.ganarchance.com/astro-luna"),
-    ("BOGOTA", "https://www.ganarchance.com/loteria-de-bogota"),
-    ("VALLE", "https://www.ganarchance.com/loteria-del-valle"),
-    ("MEDELLIN", "https://www.ganarchance.com/loteria-de-medellin"),
-    ("HUILA", "https://www.ganarchance.com/loteria-del-huila"),
-    ("RISARALDA", "https://www.ganarchance.com/loteria-del-risaralda"),
-    ("CRUZ ROJA", "https://www.ganarchance.com/cruz-roja"),
-    ("CUNDINAMARCA", "https://www.ganarchance.com/loteria-de-cundinamarca"),
-    ("MANIZALES", "https://www.ganarchance.com/loteria-de-manizales"),
-    ("META", "https://www.ganarchance.com/loteria-del-meta"),
-    ("SANTANDER", "https://www.ganarchance.com/loteria-de-santander"),
-    ("CAUCA", "https://www.ganarchance.com/loteria-del-cauca"),
-    ("BOYACA", "https://www.ganarchance.com/loteria-de-boyaca"),
+# Catálogo completo de las 27 loterías y chances de tu software
+REGLAS_LOTERIAS = [
+    ("CHONTICO DIA", "Chontico Día"),
+    ("CHONTICO NOCHE", "Chontico Noche"),
+    ("DORADO MAÑANA", "Dorado Mañana"),
+    ("DORADO MANANA", "Dorado Mañana"),
+    ("DORADO TARDE", "Dorado Tarde"),
+    ("PAISITA DIA", "Paisita Día"),
+    ("PAISITA NOCHE", "Paisita Noche"),
+    ("CAFETERITO TARDE", "Cafeterito Tarde"),
+    ("CAFETERITO NOCHE", "Cafeterito Noche"),
+    ("SINUANO DIA", "Sinuano Día"),
+    ("ASTRO SOL", "Astro Sol"),
+    ("ASTRO LUNA", "Astro Luna"),
+    ("BOGOTA", "BOGOTA"),
+    ("BOGOTÁ", "BOGOTA"),
+    ("VALLE", "VALLE"),
+    ("MEDELLIN", "MEDELLIN"),
+    ("MEDELLÍN", "MEDELLIN"),
+    ("HUILA", "HUILA"),
+    ("RISARALDA", "RISARALDA"),
+    ("CRUZ ROJA", "CRUZ ROJA"),
+    ("CUNDINAMARCA", "CUNDINAMARCA"),
+    ("MANIZALES", "MANIZALES"),
+    ("META", "META"),
+    ("TOLIMA", "TOLIMA"),
+    ("SANTANDER", "SANTANDER"),
+    ("CAUCA", "CAUCA"),
+    ("BOYACA", "BOYACA"),
+    ("BOYACÁ", "BOYACA"),
 ]
 
-SIGNOS_ZODIACALES = [
+SIGNOS = [
     "ARIES", "TAURO", "GEMINIS", "CANCER", "LEO", "VIRGO",
     "LIBRA", "ESCORPIO", "SAGITARIO", "CAPRICORNIO", "ACUARIO", "PISCIS"
 ]
@@ -45,85 +50,126 @@ MESES = {
     "septiembre": "09", "octubre": "10", "noviembre": "11", "diciembre": "12"
 }
 
-def normalizar(texto):
-    txt = texto.strip().upper()
-    for origen, destino in [("Á", "A"), ("É", "E"), ("Í", "I"), ("Ó", "O"), ("Ú", "U")]:
-        txt = txt.replace(origen, destino)
-    return txt
+NOCTURNOS = [
+    "Chontico Noche", "Paisita Noche", "Cafeterito Noche", 
+    "Astro Luna", "BOGOTA", "VALLE", "MEDELLIN", "HUILA", "RISARALDA",
+    "CRUZ ROJA", "CUNDINAMARCA", "MANIZALES", "META", "SANTANDER", "CAUCA", "BOYACA", "TOLIMA"
+]
+
+def normalizar(txt):
+    t = txt.strip().upper()
+    for a, b in [("Á", "A"), ("É", "E"), ("Í", "I"), ("Ó", "O"), ("Ú", "U")]:
+        t = t.replace(a, b)
+    return t
 
 def extraer_signo(texto):
-    txt_norm = normalizar(texto)
-    for signo in SIGNOS_ZODIACALES:
-        if signo in txt_norm:
-            return signo
+    t_norm = normalizar(texto)
+    for s in SIGNOS:
+        if s in t_norm:
+            return s
     return None
 
-def extraer_fecha_de_texto(texto):
-    txt_lower = texto.lower()
-    if "ayer" in txt_lower:
+def formatear_fecha(texto):
+    if not texto:
+        return None
+    t = texto.lower().strip()
+    
+    if "ayer" in t:
         return (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     
-    match = re.search(r"(\d{1,2})\s+de\s+([a-zA-Z]+)(?:\s+de\s+(\d{4}))?", texto, re.IGNORECASE)
+    match = re.search(r"(\d{1,2})\s+de\s+([a-zA-Z]+)(?:\s+de\s+(\d{4}))?", t)
     if match:
         dia = match.group(1).zfill(2)
-        mes_nom = match.group(2).lower()
+        mes_nom = match.group(2)
         año = match.group(3) if match.group(3) else AÑO_ACTUAL
         if mes_nom in MESES:
             return f"{año}-{MESES[mes_nom]}-{dia}"
+
+    match_iso = re.search(r"(\d{4})[-/](\d{2})[-/](\d{2})", t)
+    if match_iso:
+        return f"{match_iso.group(1)}-{match_iso.group(2)}-{match_iso.group(3)}"
+
     return None
 
-def obtener_resultados_web():
+def extraer_cuatro_cifras(texto):
+    """
+    TRUNCADOR DE QUINTA CIFRA:
+    Busca secuencias de 4 o 5 dígitos y devuelve estrictamente los primeros 4 dígitos.
+    """
+    coincidencias = re.findall(r"\b\d{4,5}\b", texto)
+    for c in coincidencias:
+        if c not in [AÑO_ACTUAL, "2025", "2024"]:
+            return c[:4]  # Se descarta la 5ta cifra inmediatamente
+    return None
+
+def extraer_loterias_de_hoy():
     resultados = []
+    url = "https://loteriasdehoy.co/"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
     }
 
-    # 1. Escanear la Portada Principal para los chances rápidos
     try:
-        res = requests.get("https://www.ganarchance.com/", headers=headers, timeout=15)
-        if res.status_code == 200:
-            soup = BeautifulSoup(res.text, "html.parser")
-            for elem in soup.find_all(["tr", "li", "article", "div", "td"]):
-                txt = elem.get_text(" ", strip=True)
-                for nombre_oficial, _ in LOTERIAS_MAPA:
-                    if normalizar(nombre_oficial) in normalizar(txt):
-                        numeros = re.findall(r"\b\d{4}\b", txt)
-                        for num in numeros:
-                            if num in [AÑO_ACTUAL, "2025", "2024"]:
-                                continue
-                            if "Astro" in nombre_oficial:
-                                signo = extraer_signo(txt)
-                                if signo:
-                                    num = f"{num}-{signo}"
-                                else:
-                                    continue
-                            fecha = extraer_fecha_de_texto(txt)
-                            if not fecha:
-                                fecha = datetime.now().strftime("%Y-%m-%d")
-                            resultados.append({"fecha": fecha, "sorteo": nombre_oficial, "resultado": num})
-                            break
-    except Exception as e:
-        print(f"[SCRAPER PORTADA ERROR] {e}")
+        res = requests.get(url, headers=headers, timeout=15)
+        if res.status_code != 200:
+            print(f"[SCRAPER ERROR] HTTP Status: {res.status_code}")
+            return resultados
 
-    # 2. Escanear las URLs individuales para garantizar el historial de Loterías Principales
-    for nombre_oficial, url in LOTERIAS_MAPA:
-        try:
-            res = requests.get(url, headers=headers, timeout=10)
-            if res.status_code != 200:
+        soup = BeautifulSoup(res.text, "html.parser")
+        
+        # LoteriasDeHoy utiliza tarjetas/bloques individuales
+        tarjetas = soup.find_all(["div", "article", "section", "tr", "li"])
+
+        sorteos_procesados = set()
+
+        for t in tarjetas:
+            txt = t.get_text(" ", strip=True)
+            txt_norm = normalizar(txt)
+            
+            # Filtro para procesar tarjetas con 1 sola lotería
+            loterias_halladas = set()
+            for clave, nombre in REGLAS_LOTERIAS:
+                if clave in txt_norm:
+                    loterias_halladas.add(nombre)
+
+            if len(loterias_halladas) != 1:
                 continue
-            soup = BeautifulSoup(res.text, "html.parser")
-            for fila in soup.find_all(["tr", "li", "article", "div"]):
-                txt = fila.get_text(" ", strip=True)
-                fecha = extraer_fecha_de_texto(txt)
-                if fecha:
-                    numeros = re.findall(r"\b\d{4}\b", txt)
-                    for num in numeros:
-                        if num in [AÑO_ACTUAL, "2025", "2024"]:
-                            continue
-                        resultados.append({"fecha": fecha, "sorteo": nombre_oficial, "resultado": num})
-                        break
-        except Exception:
-            continue
+
+            sorteo = list(loterias_halladas)[0]
+
+            if sorteo in sorteos_procesados:
+                continue
+
+            cifra_4 = extraer_cuatro_cifras(txt)
+            if not cifra_4:
+                continue
+
+            # Extracción de Signo Zodiacal para Astro
+            if "Astro" in sorteo:
+                signo = extraer_signo(txt)
+                if signo:
+                    cifra_4 = f"{cifra_4}-{signo}"
+                else:
+                    continue  # Requiere signo zodiacal obligatoriamente
+
+            # Control de Fecha
+            fecha = formatear_fecha(txt)
+            if not fecha:
+                ahora = datetime.now()
+                if sorteo in NOCTURNOS and ahora.hour < 20:
+                    fecha = (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
+                else:
+                    fecha = ahora.strftime("%Y-%m-%d")
+
+            resultados.append({
+                "fecha": fecha,
+                "sorteo": sorteo,
+                "resultado": cifra_4
+            })
+            sorteos_procesados.add(sorteo)
+
+    except Exception as e:
+        print(f"[SCRAPER ERROR EXCEPCIÓN] {e}")
 
     return resultados
 
@@ -131,30 +177,33 @@ def actualizar_sorteos_json():
     archivo = "sorteos.json"
     memoria_dict = {}
 
+    # 1. Cargar datos válidos anteriores
     if os.path.exists(archivo):
         try:
             with open(archivo, "r", encoding="utf-8") as f:
                 datos_viejos = json.load(f)
                 for item in datos_viejos:
-                    if item.get("resultado") != AÑO_ACTUAL:
+                    if item.get("resultado") != AÑO_ACTUAL and len(str(item.get("fecha"))) == 10:
                         clave = f"{item['fecha']}_{item['sorteo']}"
                         memoria_dict[clave] = item
         except Exception:
             memoria_dict = {}
 
-    nuevos = obtener_resultados_web()
+    # 2. Extraer de LoteriasDeHoy.co
+    nuevos = extraer_loterias_de_hoy()
 
     for item in nuevos:
         clave = f"{item['fecha']}_{item['sorteo']}"
         memoria_dict[clave] = item
 
+    # 3. Guardado limpio y ordenado
     lista_final = list(memoria_dict.values())
     lista_final.sort(key=lambda x: (x["fecha"], x["sorteo"]), reverse=True)
 
     with open(archivo, "w", encoding="utf-8") as f:
         json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ Sincronización completa. Total registros en sorteos.json: {len(lista_final)}")
+    print(f"✅ Sincronización exitosa desde LoteriasDeHoy.co. Total sorteos: {len(lista_final)}")
 
 if __name__ == "__main__":
     actualizar_sorteos_json()
