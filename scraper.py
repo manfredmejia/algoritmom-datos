@@ -1,27 +1,22 @@
-from datetime import datetime, timedelta
 import json
 import os
 import re
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 import requests
 
-# Mapa de meses para conversión de fechas en español
-MESES = {
-    "enero": "01",
-    "febrero": "02",
-    "marzo": "03",
-    "abril": "04",
-    "mayo": "05",
-    "junio": "06",
-    "julio": "07",
-    "agosto": "08",
-    "septiembre": "09",
-    "octubre": "10",
-    "noviembre": "11",
-    "diciembre": "12",
+AÑO_ACTUAL = str(datetime.now().year)
+
+# Días habituales de juego para Loterías Principales (0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado)
+DIAS_LOTERIAS_PRINCIPALES = {
+    "HUILA": 1,        # Martes
+    "VALLE": 2,        # Miércoles
+    "BOGOTA": 3,       # Jueves
+    "MEDELLIN": 4,     # Viernes
+    "RISARALDA": 4,    # Viernes
 }
 
-# Reglas de emparejamiento para Loterías Principales y Chances del Panel
+# Solo las loterías y chances registrados en tu software
 REGLAS_LOTERIAS = [
     ("CHONTICO", "NOCHE", "Chontico Noche"),
     ("CHONTICO", "DIA", "Chontico Día"),
@@ -32,60 +27,26 @@ REGLAS_LOTERIAS = [
     ("CAFETERITO", "TARDE", "Cafeterito Tarde"),
     ("CAFETERITO", "NOCHE", "Cafeterito Noche"),
     ("SINUANO", "DIA", "Sinuano Día"),
-    ("SINUANO", "NOCHE", "Sinuano Noche"),
     ("ASTRO", "SOL", "Astro Sol"),
     ("ASTRO", "LUNA", "Astro Luna"),
     ("BOGOTA", "", "BOGOTA"),
     ("VALLE", "", "VALLE"),
-    ("HUILA", "", "HUILA"),
-    ("MANIZALES", "", "MANIZALES"),
     ("MEDELLIN", "", "MEDELLIN"),
-    ("RED", "ROJA", "CRUZ ROJA"),
-    ("SANTANDER", "", "SANTANDER"),
+    ("HUILA", "", "HUILA"),
     ("RISARALDA", "", "RISARALDA"),
 ]
 
+MESES = {
+    "enero": "01", "febrero": "02", "marzo": "03", "abril": "04",
+    "mayo": "05", "junio": "06", "julio": "07", "agosto": "08",
+    "septiembre": "09", "octubre": "10", "noviembre": "11", "diciembre": "12"
+}
 
 def normalizar(texto):
     txt = texto.strip().upper()
-    for origen, destino in [
-        ("Á", "A"),
-        ("É", "E"),
-        ("Í", "I"),
-        ("Ó", "O"),
-        ("Ú", "U"),
-    ]:
+    for origen, destino in [("Á", "A"), ("É", "E"), ("Í", "I"), ("Ó", "O"), ("Ú", "U")]:
         txt = txt.replace(origen, destino)
     return txt
-
-
-def extraer_fecha_del_texto(texto):
-    """Extrae la fecha real en formato YYYY-MM-DD desde el texto de la página web."""
-    # 1. Buscar formato tipo: "06 de agosto de 2026" o "6 de agosto"
-    match_texto = re.search(
-        r"(\d{1,2})\s+de\s+([a-zA-Z]+)(?:\s+de\s+(\d{4}))?",
-        texto,
-        re.IGNORECASE,
-    )
-    if match_texto:
-        dia = match_texto.group(1).zfill(2)
-        mes_nombre = match_texto.group(2).lower()
-        año = match_texto.group(3) if match_texto.group(3) else "2026"
-
-        if mes_nombre in MESES:
-            return f"{año}-{MESES[mes_nombre]}-{dia}"
-
-    # 2. Buscar formato numérico tipo: "06/08/2026" o "2026-08-06"
-    match_num = re.search(r"(\d{2})[/.-](\d{2})[/.-](\d{4})", texto)
-    if match_num:
-        return f"{match_num.group(3)}-{match_num.group(2)}-{match_num.group(1)}"
-
-    match_iso = re.search(r"(\d{4})[/.-](\d{2})[/.-](\d{2})", texto)
-    if match_iso:
-        return f"{match_iso.group(1)}-{match_iso.group(2)}-{match_iso.group(3)}"
-
-    return None
-
 
 def identificar_sorteo(texto):
     txt_clean = normalizar(texto)
@@ -94,133 +55,102 @@ def identificar_sorteo(texto):
             return nombre_oficial
     return None
 
+def extraer_fecha_texto(texto):
+    """Detecta fechas reales escritas en la web para evitar problemas con días festivos."""
+    match = re.search(r"(\d{1,2})\s+de\s+([a-zA-Z]+)(?:\s+de\s+(\d{4}))?", texto, re.IGNORECASE)
+    if match:
+        dia = match.group(1).zfill(2)
+        mes_nom = match.group(2).lower()
+        año = match.group(3) if match.group(3) else AÑO_ACTUAL
+        if mes_nom in MESES:
+            return f"{año}-{MESES[mes_nom]}-{dia}"
+    return None
 
-def obtener_resultados_web():
+def obtener_fecha_calculada(sorteo_nombre):
+    hoy = datetime.now()
+    if sorteo_nombre in DIAS_LOTERIAS_PRINCIPALES:
+        dia_habitual = DIAS_LOTERIAS_PRINCIPALES[sorteo_nombre]
+        dias_atras = (hoy.weekday() - dia_habitual) % 7
+        if dias_atras == 0 and hoy.hour < 22:
+            dias_atras = 7
+        return (hoy - timedelta(days=dias_atras)).strftime("%Y-%m-%d")
+    return hoy.strftime("%Y-%m-%d")
+
+def extraer_resultados():
     resultados = []
     url = "https://www.ganarchance.com/"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    }
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
     try:
-        res = requests.get(url, headers=headers, timeout=20)
+        res = requests.get(url, headers=headers, timeout=15)
         if res.status_code != 200:
-            print(f"[SCRAPER ERROR] Código HTTP: {res.status_code}")
             return resultados
 
         soup = BeautifulSoup(res.text, "html.parser")
-
-        # Recorremos bloques de tablas o contenedores de resultados
-        bloques = soup.find_all(["tr", "div", "li", "article"])
-
-        fecha_bloque_actual = (datetime.now() - timedelta(days=1)).strftime(
-            "%Y-%m-%d"
-        )
+        bloques = soup.find_all(["tr", "div", "li"])
 
         for bloque in bloques:
-            txt_bloque = bloque.get_text(" ", strip=True)
+            txt = bloque.get_text(" ", strip=True)
+            sorteo = identificar_sorteo(txt)
 
-            # Intentar capturar fecha en el bloque o encabezado
-            fecha_detectada = extraer_fecha_del_texto(txt_bloque)
-            if fecha_detectada:
-                fecha_bloque_actual = fecha_detectada
-
-            sorteo = identificar_sorteo(txt_bloque)
             if sorteo:
-                num_match = re.search(r"\b\d{4}\b", txt_bloque)
-                if num_match:
-                    numero = num_match.group(0)
+                numeros = re.findall(r"\b\d{4}\b", txt)
+                for num in numeros:
+                    # 🚨 FILTRO ANTI-CONTAMINACIÓN: Ignora años
+                    if num in [AÑO_ACTUAL, "2025", "2024"]:
+                        continue
 
-                    # Si es Astro, extrae el signo si está presente
                     if "Astro" in sorteo:
-                        for s in [
-                            "Aries",
-                            "Tauro",
-                            "Géminis",
-                            "Cáncer",
-                            "Leo",
-                            "Virgo",
-                            "Libra",
-                            "Escorpio",
-                            "Sagitario",
-                            "Capricornio",
-                            "Acuario",
-                            "Piscis",
-                        ]:
-                            if s.lower() in txt_bloque.lower():
-                                numero = f"{numero}-{s.upper()}"
+                        for signo in ["Aries", "Tauro", "Géminis", "Cáncer", "Leo", "Virgo", "Libra", "Escorpio", "Sagitario", "Capricornio", "Acuario", "Piscis"]:
+                            if signo.lower() in txt.lower():
+                                num = f"{num}-{signo.upper()}"
                                 break
 
-                    # Asignación de fecha real
-                    fecha_resultado = (
-                        fecha_detectada
-                        if fecha_detectada
-                        else fecha_bloque_actual
-                    )
+                    # Intentamos leer la fecha real del HTML; si no está, usamos la fecha calculada
+                    fecha_web = extraer_fecha_texto(txt)
+                    fecha_final = fecha_web if fecha_web else obtener_fecha_calculada(sorteo)
 
-                    # Ajuste específico para Loterías nocturnas semanales
-                    if (
-                        sorteo in ["BOGOTA", "QUINDIO"]
-                        and datetime.now().weekday() == 4
-                    ):
-                        # Si hoy es viernes y se extrae Bogotá, la fecha real fue ayer jueves
-                        fecha_resultado = (
-                            datetime.now() - timedelta(days=1)
-                        ).strftime("%Y-%m-%d")
-
-                    resultados.append(
-                        {
-                            "fecha": fecha_resultado,
-                            "sorteo": sorteo,
-                            "resultado": numero,
-                        }
-                    )
+                    resultados.append({
+                        "fecha": fecha_final,
+                        "sorteo": sorteo,
+                        "resultado": num
+                    })
+                    break
 
     except Exception as e:
-        print(f"[SCRAPER EXCEPCIÓN] {e}")
+        print(f"[SCRAPER ERROR] {e}")
 
     return resultados
 
-
 def actualizar_sorteos_json():
     archivo = "sorteos.json"
-    existentes = []
+    memoria_dict = {}
 
     if os.path.exists(archivo):
         try:
             with open(archivo, "r", encoding="utf-8") as f:
-                existentes = json.load(f)
+                datos_viejos = json.load(f)
+                for item in datos_viejos:
+                    # Se filtran únicamente registros válidos (sin años como resultados)
+                    if item.get("resultado") != AÑO_ACTUAL and item.get("sorteo") in [r[2] for r in REGLAS_LOTERIAS]:
+                        clave = f"{item['fecha']}_{item['sorteo']}"
+                        memoria_dict[clave] = item
         except Exception:
-            existentes = []
+            memoria_dict = {}
 
-    nuevos = obtener_resultados_web()
-    print(f"[SCRAPER LOG] Resultados procesados hoy: {len(nuevos)}")
-
-    claves = {f"{s['fecha']}_{s['sorteo']}" for s in existentes}
-    agregados = 0
+    nuevos = extraer_resultados()
 
     for item in nuevos:
         clave = f"{item['fecha']}_{item['sorteo']}"
-        if clave not in claves:
-            existentes.append(item)
-            claves.add(clave)
-            agregados += 1
-            print(
-                f"✅ [NUEVO GUARDA] {item['fecha']} | {item['sorteo']} -> {item['resultado']}"
-            )
+        memoria_dict[clave] = item
 
-    # Ordenar por fecha descendente
-    existentes.sort(key=lambda x: x["fecha"], reverse=True)
+    lista_final = list(memoria_dict.values())
+    lista_final.sort(key=lambda x: x["fecha"], reverse=True)
 
-    if agregados > 0 or not os.path.exists(archivo):
-        with open(archivo, "w", encoding="utf-8") as f:
-            json.dump(existentes, f, ensure_ascii=False, indent=2)
-        print(
-            f"🚀 [ÉXITO] Base de datos actualizada en sorteos.json ({len(existentes)} registros en total)."
-        )
-    else:
-        print("ℹ️ [INFO] Los resultados leídos ya existen en la base.")
+    with open(archivo, "w", encoding="utf-8") as f:
+        json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
+    print(f"✅ Base limpia y sincronizada. Registros válidos: {len(lista_final)}")
 
 if __name__ == "__main__":
     actualizar_sorteos_json()
