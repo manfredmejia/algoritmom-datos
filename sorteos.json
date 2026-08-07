@@ -1,22 +1,12 @@
 [
   {
-    "fecha": "2026-08-07",
-    "sorteo": "BOGOTA",
-    "resultado": "2944"
-  },
-  {
-    "fecha": "2026-08-07",
-    "sorteo": "Astro Luna",
-    "resultado": "2026"
-  },
-  {
-    "fecha": "2026-08-07",
-    "sorteo": "RISARALDA",
-    "resultado": "5634"
-  },
-  {
     "fecha": "2026-08-06",
     "sorteo": "BOGOTA",
     "resultado": "2944"
+  },
+  {
+    "fecha": "2026-08-06",
+    "sorteo": "RISARALDA",
+    "resultado": "5634"
   }
 ]
