@@ -1,15 +1,13 @@
 import json
 import os
 import re
-import urllib.request
 from datetime import datetime
+import requests
 from bs4 import BeautifulSoup
 
 FECHA_HOY = datetime.now().strftime("%Y-%m-%d")
 
-# 🎯 REGLAS FLEXIBLES: Si el texto contiene Palabra1 Y Palabra2, se asigna el Nombre Oficial
 REGLAS_LOTERIAS = [
-    # (Palabra Clave 1, Palabra Clave 2, Nombre Oficial UI)
     ("CHONTICO", "NOCHE", "Chontico Noche"),
     ("CHONTICO", "DIA", "Chontico Día"),
     ("DORADO", "MANANA", "Dorado Mañana"),
@@ -22,105 +20,97 @@ REGLAS_LOTERIAS = [
     ("ASTRO", "SOL", "Astro Sol"),
     ("ASTRO", "LUNA", "Astro Luna"),
     ("HUILA", "", "HUILA"),
-    ("META", "", "META"),
     ("VALLE", "", "VALLE"),
-    ("CRUZ", "ROJA", "CRUZ ROJA"),
+    ("RED", "ROJA", "CRUZ ROJA"),
     ("BOGOTA", "", "BOGOTA"),
     ("MEDELLIN", "", "MEDELLIN"),
-    ("SANTANDER", "", "SANTANDER"),
-    ("MANIZALES", "", "MANIZALES"),
-    ("CUNDINAMARCA", "", "CUNDINAMARCA"),
-    ("RISARALDA", "", "RISARALDA"),
-    ("BOYACA", "", "BOYACA"),
-    ("CAUCA", "", "CAUCA"),
-    ("TOLIMA", "", "TOLIMA"),
 ]
 
 
-def normalizar_texto(texto):
-    """Limpia tildes y caracteres especiales."""
+def normalizar(texto):
     txt = texto.strip().upper()
-    txt = (
-        txt.replace("Á", "A")
-        .replace("É", "E")
-        .replace("Í", "I")
-        .replace("Ó", "O")
-        .replace("Ú", "U")
-    )
+    for origen, destino in [
+        ("Á", "A"),
+        ("É", "E"),
+        ("Í", "I"),
+        ("Ó", "O"),
+        ("Ú", "U"),
+    ]:
+        txt = txt.replace(origen, destino)
     return txt
 
 
-def identificar_sorteo(texto_bloque):
-    """Identifica la lotería por coincidencia parcial de palabras clave."""
-    txt_limpio = normalizar_texto(texto_bloque)
-
+def identificar_sorteo(texto):
+    txt_clean = normalizar(texto)
     for p1, p2, nombre_oficial in REGLAS_LOTERIAS:
-        if p1 in txt_limpio and (p2 == "" or p2 in txt_limpio):
+        if p1 in txt_clean and (p2 == "" or p2 in txt_clean):
             return nombre_oficial
     return None
 
 
 def extraer_resultados_oficiales():
     resultados = []
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
-
-    # Intentar conexión con ganarchance.com
     url = "https://www.ganarchance.com/"
 
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+        "Cache-Control": "no-cache",
+    }
+
     try:
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=15) as response:
-            html = response.read().decode("utf-8")
-            soup = BeautifulSoup(html, "html.parser")
+        response = requests.get(url, headers=headers, timeout=20)
+        print(f"[SCRAPER DIAGNÓSTICO] Estado HTTP: {response.status_code}")
 
-            # Analizar todos los contenedores de texto
-            for bloque in soup.find_all(
-                ["tr", "div", "li", "p", "td"], class_=True
-            ):
-                texto = bloque.get_text(" ", strip=True)
+        if response.status_code != 200:
+            print(
+                f"[SCRAPER ALERTA] La web respondió con código {response.status_code}. Es posible un bloqueo de IP."
+            )
+            return resultados
 
-                # Verificar si el bloque contiene el nombre de algún sorteo de nuestro panel
-                sorteo_detectado = identificar_sorteo(texto)
+        soup = BeautifulSoup(response.text, "html.parser")
+        bloques = soup.find_all(["tr", "div", "li", "p", "td"])
 
-                if sorteo_detectado:
-                    # Buscar número de 4 dígitos usando Expresiones Regulares (Regex)
-                    match_num = re.search(r"\b\d{4}\b", texto)
-                    if match_num:
-                        numero_ganador = match_num.group(0)
+        for bloque in bloques:
+            texto = bloque.get_text(" ", strip=True)
+            sorteo = identificar_sorteo(texto)
 
-                        # Si es un sorteo Astro, intentar extraer el signo
-                        if "Astro" in sorteo_detectado:
-                            signos = [
-                                "Aries",
-                                "Tauro",
-                                "Géminis",
-                                "Cáncer",
-                                "Leo",
-                                "Virgo",
-                                "Libra",
-                                "Escorpio",
-                                "Sagitario",
-                                "Capricornio",
-                                "Acuario",
-                                "Piscis",
-                            ]
-                            for s in signos:
-                                if s.lower() in texto.lower():
-                                    numero_ganador = f"{numero_ganador}-{s}"
-                                    break
+            if sorteo:
+                num_match = re.search(r"\b\d{4}\b", texto)
+                if num_match:
+                    numero = num_match.group(0)
 
-                        resultados.append(
-                            {
-                                "fecha": FECHA_HOY,
-                                "sorteo": sorteo_detectado,
-                                "resultado": numero_ganador,
-                            }
-                        )
+                    # Si es Astro, extrae signo si está presente
+                    if "Astro" in sorteo:
+                        for s in [
+                            "Aries",
+                            "Tauro",
+                            "Géminis",
+                            "Cáncer",
+                            "Leo",
+                            "Virgo",
+                            "Libra",
+                            "Escorpio",
+                            "Sagitario",
+                            "Capricornio",
+                            "Acuario",
+                            "Piscis",
+                        ]:
+                            if s.lower() in texto.lower():
+                                numero = f"{numero}-{s}"
+                                break
+
+                    resultados.append(
+                        {
+                            "fecha": FECHA_HOY,
+                            "sorteo": sorteo,
+                            "resultado": numero,
+                        }
+                    )
 
     except Exception as e:
-        print(f"[SCRAPER] Error de conexión: {e}")
+        print(f"[SCRAPER ERROR] Excepción al conectar: {e}")
 
     return resultados
 
@@ -128,7 +118,6 @@ def extraer_resultados_oficiales():
 def actualizar_sorteos_json():
     archivo = "sorteos.json"
     existentes = []
-    agregados = 0
 
     if os.path.exists(archivo):
         try:
@@ -138,32 +127,35 @@ def actualizar_sorteos_json():
             existentes = []
 
     nuevos = extraer_resultados_oficiales()
+    print(f"[SCRAPER LOG] Total elementos capturados hoy: {len(nuevos)}")
 
     if not nuevos:
-        print("[SCRAPER] No se encontraron sorteos nuevos en la web hoy.")
+        print(
+            "[SCRAPER] No se extrajeron sorteos. Verifique el diagnóstico de la conexión."
+        )
         return
 
-    # Usar diccionario para evitar duplicados del mismo día y sorteo
-    claves_existentes = {f"{s['fecha']}_{s['sorteo']}" for s in existentes}
+    claves = {f"{s['fecha']}_{s['sorteo']}" for s in existentes}
+    agregados = 0
 
     for item in nuevos:
         clave = f"{item['fecha']}_{item['sorteo']}"
-        if clave not in claves_existentes:
+        if clave not in claves:
             existentes.append(item)
-            claves_existentes.add(clave)
+            claves.add(clave)
             agregados += 1
             print(
-                f"[SCRAPER] Capturado: {item['sorteo']} -> {item['resultado']}"
+                f"[SCRAPER CAPTURADO] {item['sorteo']} -> {item['resultado']}"
             )
 
     if agregados > 0:
         with open(archivo, "w", encoding="utf-8") as f:
             json.dump(existentes, f, ensure_ascii=False, indent=2)
-        print(f"[SCRAPER] ✅ Exito: {agregados} sorteos guardados en GitHub.")
-    else:
         print(
-            "[SCRAPER] Todos los sorteos capturados ya estaban registrados en el JSON."
+            f"[SCRAPER ÉXITO] Se guardaron {agregados} sorteos nuevos en sorteos.json"
         )
+    else:
+        print("[SCRAPER] Los sorteos ya estaban previamente registrados.")
 
 
 if __name__ == "__main__":
