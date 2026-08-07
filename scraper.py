@@ -18,7 +18,6 @@ LOTERIAS_URLS = [
     ("Cafeterito Tarde", "https://www.ganarchance.com/cafeterito-tarde"),
     ("Cafeterito Noche", "https://www.ganarchance.com/cafeterito-noche"),
     ("Sinuano Día", "https://www.ganarchance.com/sinuano-dia"),
-    ("Sinuano Noche", "https://www.ganarchance.com/sinuano-noche"),
     ("Astro Sol", "https://www.ganarchance.com/astro-sol"),
     ("Astro Luna", "https://www.ganarchance.com/astro-luna"),
     ("BOGOTA", "https://www.ganarchance.com/loteria-de-bogota"),
@@ -26,6 +25,13 @@ LOTERIAS_URLS = [
     ("MEDELLIN", "https://www.ganarchance.com/loteria-de-medellin"),
     ("VALLE", "https://www.ganarchance.com/loteria-del-valle"),
     ("HUILA", "https://www.ganarchance.com/loteria-del-huila"),
+    ("CRUZ ROJA", "https://www.ganarchance.com/loteria-de-cruzroja"),
+    ("CUNDINAMARCA", "https://www.ganarchance.com/loteria-de-cundinamarca"),
+    ("MANIZALES", "https://www.ganarchance.com/loteria-de-manizales"),
+    ("META", "https://www.ganarchance.com/loteria-del-meta"),
+    ("SANTANDER", "https://www.ganarchance.com/loteria-del-santander"),
+    ("CAUCA", "https://www.ganarchance.com/loteria-del-cauca"),
+    ("BOYACA", "https://www.ganarchance.com/loteria-de-boyaca"),
 ]
 
 SIGNOS_ZODIACALES = [
