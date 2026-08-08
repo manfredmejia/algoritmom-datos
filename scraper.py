@@ -94,44 +94,66 @@ def identificar_sorteo(texto):
 
 def rescatar_cafeterito_noche():
     """
-    MOTOR DE RESCATE DIRECTO:
-    Al ser una página dedicada a Cafeterito Noche, extrae la primera cifra válida de 4 dígitos.
+    RESCATE MULTI-FUENTE BLINDADO:
+    Busca estrictamente en filas de tabla HTML (<tr>) de dos fuentes especializadas.
     """
-    url = "https://www.ganarchance.com/cafeterito-noche"
-    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    
-    try:
-        res = requests.get(url, headers=headers, timeout=10)
-        if res.status_code == 200:
+    urls = [
+        "https://www.ganarchance.com/cafeterito-noche",
+        "https://paginasdechance.com/cafeterito-noche/"
+    ]
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    }
+
+    for url in urls:
+        try:
+            res = requests.get(url, headers=headers, timeout=10)
+            if res.status_code != 200:
+                continue
+
             soup = BeautifulSoup(res.text, "html.parser")
-            bloques = soup.find_all(["tr", "div", "li", "article"])
             
-            for b in bloques:
-                txt = b.get_text(" ", strip=True)
+            # 1. Búsqueda estricta en filas de tablas <tr>
+            filas = soup.find_all("tr")
+            for f in filas:
+                txt = f.get_text(" ", strip=True)
                 numeros = re.findall(r"\b\d{4}\b", txt)
                 for num in numeros:
-                    if num not in [AÑO_ACTUAL, "2025", "2024"]:
-                        ahora = datetime.now()
-                        fecha_res = None
-                        
-                        # Buscar fecha explícita en el bloque
-                        match = re.search(r"(\d{1,2})\s+de\s+([a-zA-Z]+)", txt, re.IGNORECASE)
-                        if match:
-                            dia = int(match.group(1))
-                            mes_nom = match.group(2).lower()
-                            if mes_nom in MESES:
-                                mes = int(MESES[mes_nom])
-                                fecha_res = f"{ahora.year}-{mes:02d}-{dia:02d}"
-                        
-                        if not fecha_res:
-                            # Cafeterito Noche juega a las 10:00 PM (22:00)
-                            fecha_res = (ahora - timedelta(days=1)).strftime("%Y-%m-%d") if ahora.hour < 22 else ahora.strftime("%Y-%m-%d")
-                        
-                        print(f"🎯 Cafeterito Noche rescatado exitosamente: {num} ({fecha_res})")
-                        return {"fecha": fecha_res, "sorteo": "Cafeterito Noche", "resultado": num}
-    except Exception as e:
-        print(f"[RESCATE CAFETERITO ERROR] {e}")
-        
+                    if num in [AÑO_ACTUAL, "2025", "2024"]:
+                        continue
+
+                    ahora = datetime.now()
+                    fecha_res = None
+                    
+                    match = re.search(r"(\d{1,2})\s+de\s+([a-zA-Z]+)", txt, re.IGNORECASE)
+                    if match:
+                        dia = int(match.group(1))
+                        mes_nom = match.group(2).lower()
+                        if mes_nom in MESES:
+                            mes = int(MESES[mes_nom])
+                            fecha_res = f"{ahora.year}-{mes:02d}-{dia:02d}"
+
+                    if not fecha_res:
+                        fecha_res = (ahora - timedelta(days=1)).strftime("%Y-%m-%d") if ahora.hour < 22 else ahora.strftime("%Y-%m-%d")
+
+                    print(f"✅ Cafeterito Noche rescatado desde {url}: {num} ({fecha_res})")
+                    return {"fecha": fecha_res, "sorteo": "Cafeterito Noche", "resultado": num}
+
+            # 2. Búsqueda secundaria en elementos de lista <li>
+            listas = soup.find_all("li")
+            for l in listas:
+                txt = l.get_text(" ", strip=True)
+                numeros = re.findall(r"\b\d{4}\b", txt)
+                for num in numeros:
+                    if num in [AÑO_ACTUAL, "2025", "2024"]:
+                        continue
+                    ahora = datetime.now()
+                    fecha_res = (ahora - timedelta(days=1)).strftime("%Y-%m-%d") if ahora.hour < 22 else ahora.strftime("%Y-%m-%d")
+                    return {"fecha": fecha_res, "sorteo": "Cafeterito Noche", "resultado": num}
+
+        except Exception as e:
+            print(f"[ERROR RESCATE EN {url}] {e}")
+
     return None
 
 def extraer_resultados_chancehoy():
@@ -145,56 +167,53 @@ def extraer_resultados_chancehoy():
 
     try:
         res = requests.get(url, headers=headers, timeout=15)
-        if res.status_code != 200:
-            print(f"[SCRAPER ERROR] HTTP Status: {res.status_code}")
-            return resultados
+        if res.status_code == 200:
+            soup = BeautifulSoup(res.text, "html.parser")
+            fecha_defecto_hoy = datetime.now().strftime("%Y-%m-%d")
 
-        soup = BeautifulSoup(res.text, "html.parser")
-        fecha_defecto_hoy = datetime.now().strftime("%Y-%m-%d")
+            tarjetas = soup.find_all("a", class_="box-post")
+            sorteos_fecha_procesados = set()
 
-        tarjetas = soup.find_all("a", class_="box-post")
-        sorteos_fecha_procesados = set()
+            for t in tarjetas:
+                elem_titulo = t.find("p", class_="box-post-title")
+                txt_titulo = elem_titulo.get_text(" ", strip=True) if elem_titulo else t.get_text(" ", strip=True)
+                
+                sorteo = identificar_sorteo(txt_titulo)
+                if not sorteo:
+                    continue
 
-        for t in tarjetas:
-            elem_titulo = t.find("p", class_="box-post-title")
-            txt_titulo = elem_titulo.get_text(" ", strip=True) if elem_titulo else t.get_text(" ", strip=True)
-            
-            sorteo = identificar_sorteo(txt_titulo)
-            if not sorteo:
-                continue
+                fecha_real = obtener_fecha_de_tarjeta(t, fecha_defecto_hoy)
+                clave_procesada = f"{fecha_real}_{sorteo}"
+                if clave_procesada in sorteos_fecha_procesados:
+                    continue
 
-            fecha_real = obtener_fecha_de_tarjeta(t, fecha_defecto_hoy)
-            clave_procesada = f"{fecha_real}_{sorteo}"
-            if clave_procesada in sorteos_fecha_procesados:
-                continue
+                txt_tarjeta = t.get_text(" ", strip=True)
+                digitos = re.findall(r"\b\d\b", txt_tarjeta)
 
-            txt_tarjeta = t.get_text(" ", strip=True)
-            digitos = re.findall(r"\b\d\b", txt_tarjeta)
+                if len(digitos) >= 4:
+                    cifra_4 = "".join(digitos[:4])
 
-            if len(digitos) >= 4:
-                cifra_4 = "".join(digitos[:4])
+                    if "Astro" in sorteo:
+                        signo = extraer_signo(txt_tarjeta)
+                        if signo:
+                            cifra_4 = f"{cifra_4}-{signo}"
+                        else:
+                            continue
 
-                if "Astro" in sorteo:
-                    signo = extraer_signo(txt_tarjeta)
-                    if signo:
-                        cifra_4 = f"{cifra_4}-{signo}"
-                    else:
-                        continue
+                    if sorteo == "Cafeterito Noche":
+                        tiene_cafeterito_noche = True
 
-                if sorteo == "Cafeterito Noche":
-                    tiene_cafeterito_noche = True
-
-                resultados.append({
-                    "fecha": fecha_real,
-                    "sorteo": sorteo,
-                    "resultado": cifra_4
-                })
-                sorteos_fecha_procesados.add(clave_procesada)
+                    resultados.append({
+                        "fecha": fecha_real,
+                        "sorteo": sorteo,
+                        "resultado": cifra_4
+                    })
+                    sorteos_fecha_procesados.add(clave_procesada)
 
     except Exception as e:
         print(f"[SCRAPER EXCEPCIÓN] {e}")
 
-    # RESCATE AUTOMÁTICO
+    # RESCATE AUTOMÁTICO DE CAFETERITO NOCHE
     if not tiene_cafeterito_noche:
         rescate = rescatar_cafeterito_noche()
         if rescate:
