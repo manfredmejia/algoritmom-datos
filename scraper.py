@@ -1,46 +1,13 @@
 import json
 import os
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 
 AÑO_ACTUAL = str(datetime.now().year)
 
-# 1. Calendario de Loterías Principales (0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado)
-DIAS_LOTERIAS_SEMANALES = {
-    "TOLIMA": 0,           # 👈 Agregada Lotería del Tolima (Lunes)
-    "CUNDINAMARCA": 0,
-    "HUILA": 1,
-    "CRUZ ROJA": 1,
-    "VALLE": 2,
-    "MANIZALES": 2,
-    "META": 2,
-    "BOGOTA": 3,
-    "QUINDIO": 3,
-    "MEDELLIN": 4,
-    "RISARALDA": 4,
-    "SANTANDER": 4,
-    "BOYACA": 5,
-    "CAUCA": 5,
-}
-
-# Horas de corte para chances diarios (Se eliminó Sinuano Noche)
-HORAS_CORTE_CHANCES = {
-    "Dorado Mañana": 11,
-    "Chontico Día": 13,
-    "Paisita Día": 13,
-    "Sinuano Día": 14,
-    "Astro Sol": 15,
-    "Dorado Tarde": 16,
-    "Cafeterito Tarde": 17,
-    "Chontico Noche": 20,
-    "Paisita Noche": 20,
-    "Astro Luna": 21,
-    "Cafeterito Noche": 22,
-}
-
-# Reglas de coincidencia (Se eliminó Sinuano Noche y se agregó Tolima)
+# Catálogo oficial de loterías y chances de tu software (Incluye Tolima, Excluye Sinuano Noche)
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
     ("CHONTICO NOCHE", "Chontico Noche"),
@@ -56,7 +23,7 @@ REGLAS_LOTERIAS = [
     ("ASTRO SOL", "Astro Sol"),
     ("SUPER ASTRO LUNA", "Astro Luna"),
     ("ASTRO LUNA", "Astro Luna"),
-    ("TOLIMA", "TOLIMA"),    # 👈 Regla para Tolima
+    ("TOLIMA", "TOLIMA"),
     ("BOGOTA", "BOGOTA"),
     ("BOGOTÁ", "BOGOTA"),
     ("VALLE", "VALLE"),
@@ -98,62 +65,31 @@ def extraer_signo(texto):
             return s
     return None
 
-def calcular_fecha_exacta_sorteo(sorteo, txt_tarjeta, fecha_encabezado):
-    """
-    DETECTA FESTIVOS Y CAMBIOS DE DÍA:
-    1. Si la tarjeta contiene una fecha explícita ("06 de agosto", "ayer"), usa esa fecha real.
-    2. Si no la contiene, recurre al calendario habitual o franja horaria.
-    """
-    ahora = datetime.now()
-    hoy = ahora.date()
-
-    # 1. Búsqueda de fecha escrita en la tarjeta (Manejo de Festivos)
-    match = re.search(r"(\d{1,2})\s+de\s+([a-zA-Z]+)", txt_tarjeta, re.IGNORECASE)
-    if match:
-        dia = int(match.group(1))
-        mes_nom = match.group(2).lower()
-        if mes_nom in MESES:
-            mes = int(MESES[mes_nom])
-            return f"{ahora.year}-{mes:02d}-{dia:02d}"
-
-    if "ayer" in txt_tarjeta.lower():
-        return (hoy - timedelta(days=1)).strftime("%Y-%m-%d")
-
-    # 2. Si es Lotería Principal Semanal
-    if sorteo in DIAS_LOTERIAS_SEMANALES:
-        dia_habitual = DIAS_LOTERIAS_SEMANALES[sorteo]
-        dias_atras = (ahora.weekday() - dia_habitual) % 7
-        
-        # Ajuste si es el día del juego pero la ejecución se realiza antes del sorteo nocturno
-        if dias_atras == 0 and ahora.hour < 23:
-            dias_atras = 7
-            
-        fecha_real = hoy - timedelta(days=dias_atras)
-        return fecha_real.strftime("%Y-%m-%d")
-
-    # 3. Si es Chance Diario
-    if sorteo in HORAS_CORTE_CHANCES:
-        hora_corte = HORAS_CORTE_CHANCES[sorteo]
-        if ahora.hour < hora_corte:
-            return (hoy - timedelta(days=1)).strftime("%Y-%m-%d")
-        else:
-            return hoy.strftime("%Y-%m-%d")
-
-    return fecha_encabezado
-
-def parsear_fecha_encabezado(soup):
-    elem_fecha = soup.find("p", class_="date-main-div")
-    texto_fecha = elem_fecha.get_text(" ", strip=True) if elem_fecha else soup.get_text(" ", strip=True)
-    
-    match = re.search(r"(\d{1,2})\s+DE\s+([A-Z]+)\s+DE\s+(\d{4})", texto_fecha, re.IGNORECASE)
+def extraer_fecha_de_encabezado_texto(texto):
+    """Extrae la fecha en formato YYYY-MM-DD desde el texto de un banner de título."""
+    match = re.search(r"(\d{1,2})\s+DE\s+([A-Z]+)\s+DE\s+(\d{4})", texto, re.IGNORECASE)
     if match:
         dia = match.group(1).zfill(2)
         mes_nom = match.group(2).lower()
         año = match.group(3)
         if mes_nom in MESES:
             return f"{año}-{MESES[mes_nom]}-{dia}"
-            
-    return datetime.now().strftime("%Y-%m-%d")
+    return None
+
+def obtener_fecha_de_tarjeta(tarjeta, fecha_defecto):
+    """
+    RASTREO HTML: Busca el encabezado (HOY arriba, AYER abajo) 
+    más cercano que tiene la tarjeta directamente encima.
+    """
+    elem_prev = tarjeta.find_previous(["p", "div", "h1", "h2", "h3", "section", "header"])
+    while elem_prev:
+        txt_prev = elem_prev.get_text(" ", strip=True)
+        fecha_hallada = extraer_fecha_de_encabezado_texto(txt_prev)
+        if fecha_hallada:
+            return fecha_hallada
+        elem_prev = elem_prev.find_previous(["p", "div", "h1", "h2", "h3", "section", "header"])
+
+    return fecha_defecto
 
 def identificar_sorteo(texto):
     txt_norm = normalizar(texto)
@@ -176,17 +112,24 @@ def extraer_resultados_chancehoy():
             return resultados
 
         soup = BeautifulSoup(res.text, "html.parser")
-        fecha_encabezado = parsear_fecha_encabezado(soup)
+        fecha_defecto_hoy = datetime.now().strftime("%Y-%m-%d")
 
         tarjetas = soup.find_all("a", class_="box-post")
-        sorteos_procesados = set()
+        sorteos_fecha_procesados = set()
 
         for t in tarjetas:
             elem_titulo = t.find("p", class_="box-post-title")
             txt_titulo = elem_titulo.get_text(" ", strip=True) if elem_titulo else t.get_text(" ", strip=True)
             
             sorteo = identificar_sorteo(txt_titulo)
-            if not sorteo or sorteo in sorteos_procesados:
+            if not sorteo:
+                continue
+
+            # Rastrear la fecha específica del banner inmediatamente superior
+            fecha_real = obtener_fecha_de_tarjeta(t, fecha_defecto_hoy)
+            
+            clave_procesada = f"{fecha_real}_{sorteo}"
+            if clave_procesada in sorteos_fecha_procesados:
                 continue
 
             txt_tarjeta = t.get_text(" ", strip=True)
@@ -202,14 +145,12 @@ def extraer_resultados_chancehoy():
                     else:
                         continue
 
-                fecha_real = calcular_fecha_exacta_sorteo(sorteo, txt_tarjeta, fecha_encabezado)
-
                 resultados.append({
                     "fecha": fecha_real,
                     "sorteo": sorteo,
                     "resultado": cifra_4
                 })
-                sorteos_procesados.add(sorteo)
+                sorteos_fecha_procesados.add(clave_procesada)
 
     except Exception as e:
         print(f"[SCRAPER EXCEPCIÓN] {e}")
@@ -225,7 +166,6 @@ def actualizar_sorteos_json():
             with open(archivo, "r", encoding="utf-8") as f:
                 datos_viejos = json.load(f)
                 for item in datos_viejos:
-                    # Filtra y mantiene registros previos limpios
                     if len(str(item.get("fecha"))) == 10 and item.get("resultado") != AÑO_ACTUAL and item.get("sorteo") != "Sinuano Noche":
                         clave = f"{item['fecha']}_{item['sorteo']}"
                         memoria_dict[clave] = item
@@ -244,7 +184,7 @@ def actualizar_sorteos_json():
     with open(archivo, "w", encoding="utf-8") as f:
         json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ Sincronización finalizada. Total registros en sorteos.json: {len(lista_final)}")
+    print(f"✅ Extracción finalizada con éxito. Total registros en sorteos.json: {len(lista_final)}")
 
 if __name__ == "__main__":
     actualizar_sorteos_json()
