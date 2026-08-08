@@ -94,8 +94,8 @@ def identificar_sorteo(texto):
 
 def rescatar_cafeterito_noche():
     """
-    MOTOR DE RESCATE AUXILIAR:
-    Si Cafeterito Noche no está en el sitio principal, consulta directamente su subpágina oficial.
+    MOTOR DE RESCATE DIRECTO:
+    Al ser una página dedicada a Cafeterito Noche, extrae la primera cifra válida de 4 dígitos.
     """
     url = "https://www.ganarchance.com/cafeterito-noche"
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
@@ -104,19 +104,31 @@ def rescatar_cafeterito_noche():
         res = requests.get(url, headers=headers, timeout=10)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            bloques = soup.find_all(["tr", "div", "li"])
+            bloques = soup.find_all(["tr", "div", "li", "article"])
             
             for b in bloques:
                 txt = b.get_text(" ", strip=True)
-                if "CAFETERITO NOCHE" in normalizar(txt):
-                    numeros = re.findall(r"\b\d{4}\b", txt)
-                    for num in numeros:
-                        if num not in [AÑO_ACTUAL, "2025", "2024"]:
-                            ahora = datetime.now()
-                            # Cafeterito Noche juega a las 10:00 PM; si el script corre antes, es de ayer
+                numeros = re.findall(r"\b\d{4}\b", txt)
+                for num in numeros:
+                    if num not in [AÑO_ACTUAL, "2025", "2024"]:
+                        ahora = datetime.now()
+                        fecha_res = None
+                        
+                        # Buscar fecha explícita en el bloque
+                        match = re.search(r"(\d{1,2})\s+de\s+([a-zA-Z]+)", txt, re.IGNORECASE)
+                        if match:
+                            dia = int(match.group(1))
+                            mes_nom = match.group(2).lower()
+                            if mes_nom in MESES:
+                                mes = int(MESES[mes_nom])
+                                fecha_res = f"{ahora.year}-{mes:02d}-{dia:02d}"
+                        
+                        if not fecha_res:
+                            # Cafeterito Noche juega a las 10:00 PM (22:00)
                             fecha_res = (ahora - timedelta(days=1)).strftime("%Y-%m-%d") if ahora.hour < 22 else ahora.strftime("%Y-%m-%d")
-                            print(f"🎯 Cafeterito Noche rescatado exitosamente: {num} ({fecha_res})")
-                            return {"fecha": fecha_res, "sorteo": "Cafeterito Noche", "resultado": num}
+                        
+                        print(f"🎯 Cafeterito Noche rescatado exitosamente: {num} ({fecha_res})")
+                        return {"fecha": fecha_res, "sorteo": "Cafeterito Noche", "resultado": num}
     except Exception as e:
         print(f"[RESCATE CAFETERITO ERROR] {e}")
         
@@ -182,7 +194,7 @@ def extraer_resultados_chancehoy():
     except Exception as e:
         print(f"[SCRAPER EXCEPCIÓN] {e}")
 
-    # 🚨 RESCATE AUTOMÁTICO: Si no apareció Cafeterito Noche en chancehoy.com, lo trae del respaldo
+    # RESCATE AUTOMÁTICO
     if not tiene_cafeterito_noche:
         rescate = rescatar_cafeterito_noche()
         if rescate:
