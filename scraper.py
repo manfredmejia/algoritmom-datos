@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 AÑO_ACTUAL = str(datetime.now().year)
 
-# Mapeo de loterías y chances de tu software
+# Catálogo completo con variaciones de nombres (incluye "SUPER ASTRO")
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
     ("CHONTICO NOCHE", "Chontico Noche"),
@@ -19,8 +19,9 @@ REGLAS_LOTERIAS = [
     ("CAFETERITO TARDE", "Cafeterito Tarde"),
     ("CAFETERITO NOCHE", "Cafeterito Noche"),
     ("SINUANO DIA", "Sinuano Día"),
-    ("SINUANO NOCHE", "Sinuano Noche"),
+    ("SUPER ASTRO SOL", "Astro Sol"),
     ("ASTRO SOL", "Astro Sol"),
+    ("SUPER ASTRO LUNA", "Astro Luna"),
     ("ASTRO LUNA", "Astro Luna"),
     ("BOGOTA", "BOGOTA"),
     ("BOGOTÁ", "BOGOTA"),
@@ -37,6 +38,7 @@ REGLAS_LOTERIAS = [
     ("CAUCA", "CAUCA"),
     ("BOYACA", "BOYACA"),
     ("BOYACÁ", "BOYACA"),
+    ("TOLIMA", "TOLIMA"),
 ]
 
 SIGNOS = [
@@ -64,15 +66,18 @@ def extraer_signo(texto):
     return None
 
 def parsear_fecha_encabezado(soup):
-    """Extrae la fecha general publicada en la cabecera de ChanceHoy (ej. 07 DE AGOSTO DE 2026 -> 2026-08-07)."""
-    texto_pagina = soup.get_text(" ", strip=True)
-    match = re.search(r"(\d{1,2})\s+DE\s+([A-Z]+)\s+DE\s+(\d{4})", texto_pagina, re.IGNORECASE)
+    """Extrae la fecha del párrafo especifico <p class='date-main-div'> capturado."""
+    elem_fecha = soup.find("p", class_="date-main-div")
+    texto_fecha = elem_fecha.get_text(" ", strip=True) if elem_fecha else soup.get_text(" ", strip=True)
+    
+    match = re.search(r"(\d{1,2})\s+DE\s+([A-Z]+)\s+DE\s+(\d{4})", texto_fecha, re.IGNORECASE)
     if match:
         dia = match.group(1).zfill(2)
         mes_nom = match.group(2).lower()
         año = match.group(3)
         if mes_nom in MESES:
             return f"{año}-{MESES[mes_nom]}-{dia}"
+            
     return datetime.now().strftime("%Y-%m-%d")
 
 def identificar_sorteo(texto):
@@ -98,35 +103,41 @@ def extraer_resultados_chancehoy():
         soup = BeautifulSoup(res.text, "html.parser")
         fecha_pagina = parsear_fecha_encabezado(soup)
 
-        # En ChanceHoy cada tarjeta o bloque de resultado está en contenedores div/article
-        bloques = soup.find_all(["div", "article", "section"])
+        # 🎯 CAPTURA EXACTA: Busca exclusivamente las tarjetas <a class="box-post">
+        tarjetas = soup.find_all("a", class_="box-post")
         sorteos_procesados = set()
 
-        for b in bloques:
-            txt = b.get_text(" ", strip=True)
-            sorteo = identificar_sorteo(txt)
+        for t in tarjetas:
+            # Título de la tarjeta (<p class="box-post-title">)
+            elem_titulo = t.find("p", class_="box-post-title")
+            txt_titulo = elem_titulo.get_text(" ", strip=True) if elem_titulo else t.get_text(" ", strip=True)
+            
+            sorteo = identificar_sorteo(txt_titulo)
+            if not sorteo or sorteo in sorteos_procesados:
+                continue
 
-            if sorteo and sorteo not in sorteos_procesados:
-                # Buscamos todas las cifras individuales (las bolas verdes y azules de la imagen)
-                ditos_encontrados = re.findall(r"\b\d\b", txt)
-                
-                if len(ditos_encontrados) >= 4:
-                    # Tomamos estrictamente los primeros 4 dígitos (las 4 bolas verdes) y descartamos la 5ta bola azul
-                    cifra_4 = "".join(ditos_encontrados[:4])
+            txt_tarjeta = t.get_text(" ", strip=True)
 
-                    if "Astro" in sorteo:
-                        signo = extraer_signo(txt)
-                        if signo:
-                            cifra_4 = f"{cifra_4}-{signo}"
-                        else:
-                            continue  # Exige que Astro contenga su signo zodiacal
+            # Buscar dígitos individuales de las bolas verdes
+            digitos = re.findall(r"\b\d\b", txt_tarjeta)
 
-                    resultados.append({
-                        "fecha": fecha_pagina,
-                        "sorteo": sorteo,
-                        "resultado": cifra_4
-                    })
-                    sorteos_procesados.add(sorteo)
+            if len(digitos) >= 4:
+                # Tomar los primeros 4 dígitos (descarta la 5ta bola azul)
+                cifra_4 = "".join(digitos[:4])
+
+                if "Astro" in sorteo:
+                    signo = extraer_signo(txt_tarjeta)
+                    if signo:
+                        cifra_4 = f"{cifra_4}-{signo}"
+                    else:
+                        continue  # Exige que Astro incluya su signo zodiacal
+
+                resultados.append({
+                    "fecha": fecha_pagina,
+                    "sorteo": sorteo,
+                    "resultado": cifra_4
+                })
+                sorteos_procesados.add(sorteo)
 
     except Exception as e:
         print(f"[SCRAPER EXCEPCIÓN] {e}")
@@ -137,34 +148,31 @@ def actualizar_sorteos_json():
     archivo = "sorteos.json"
     memoria_dict = {}
 
-    # 1. Cargar historial anterior purgado
+    # Cargar datos limpios anteriores
     if os.path.exists(archivo):
         try:
             with open(archivo, "r", encoding="utf-8") as f:
                 datos_viejos = json.load(f)
                 for item in datos_viejos:
-                    # Descartar entradas con fechas mal formateadas o resultados corruptos
                     if len(str(item.get("fecha"))) == 10 and item.get("resultado") != AÑO_ACTUAL:
                         clave = f"{item['fecha']}_{item['sorteo']}"
                         memoria_dict[clave] = item
         except Exception:
             memoria_dict = {}
 
-    # 2. Extraer de ChanceHoy.com
     nuevos = extraer_resultados_chancehoy()
 
     for item in nuevos:
         clave = f"{item['fecha']}_{item['sorteo']}"
         memoria_dict[clave] = item
 
-    # 3. Guardar ordenado
     lista_final = list(memoria_dict.values())
     lista_final.sort(key=lambda x: (x["fecha"], x["sorteo"]), reverse=True)
 
     with open(archivo, "w", encoding="utf-8") as f:
         json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ Sincronización impecable desde ChanceHoy. Total sorteos guardados: {len(lista_final)}")
+    print(f"✅ Extracción impecable. Registros almacenados: {len(lista_final)}")
 
 if __name__ == "__main__":
     actualizar_sorteos_json()
