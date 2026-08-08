@@ -1,13 +1,13 @@
 import json
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
 
 AÑO_ACTUAL = str(datetime.now().year)
 
-# Catálogo oficial de loterías y chances de tu software (Incluye Tolima, Excluye Sinuano Noche)
+# Catálogo oficial de loterías y chances de tu software
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
     ("CHONTICO NOCHE", "Chontico Noche"),
@@ -66,7 +66,6 @@ def extraer_signo(texto):
     return None
 
 def extraer_fecha_de_encabezado_texto(texto):
-    """Extrae la fecha en formato YYYY-MM-DD desde el texto de un banner de título."""
     match = re.search(r"(\d{1,2})\s+DE\s+([A-Z]+)\s+DE\s+(\d{4})", texto, re.IGNORECASE)
     if match:
         dia = match.group(1).zfill(2)
@@ -77,10 +76,6 @@ def extraer_fecha_de_encabezado_texto(texto):
     return None
 
 def obtener_fecha_de_tarjeta(tarjeta, fecha_defecto):
-    """
-    RASTREO HTML: Busca el encabezado (HOY arriba, AYER abajo) 
-    más cercano que tiene la tarjeta directamente encima.
-    """
     elem_prev = tarjeta.find_previous(["p", "div", "h1", "h2", "h3", "section", "header"])
     while elem_prev:
         txt_prev = elem_prev.get_text(" ", strip=True)
@@ -88,7 +83,6 @@ def obtener_fecha_de_tarjeta(tarjeta, fecha_defecto):
         if fecha_hallada:
             return fecha_hallada
         elem_prev = elem_prev.find_previous(["p", "div", "h1", "h2", "h3", "section", "header"])
-
     return fecha_defecto
 
 def identificar_sorteo(texto):
@@ -98,12 +92,44 @@ def identificar_sorteo(texto):
             return nombre_oficial
     return None
 
+def rescatar_cafeterito_noche():
+    """
+    MOTOR DE RESCATE AUXILIAR:
+    Si Cafeterito Noche no está en el sitio principal, consulta directamente su subpágina oficial.
+    """
+    url = "https://www.ganarchance.com/cafeterito-noche"
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    
+    try:
+        res = requests.get(url, headers=headers, timeout=10)
+        if res.status_code == 200:
+            soup = BeautifulSoup(res.text, "html.parser")
+            bloques = soup.find_all(["tr", "div", "li"])
+            
+            for b in bloques:
+                txt = b.get_text(" ", strip=True)
+                if "CAFETERITO NOCHE" in normalizar(txt):
+                    numeros = re.findall(r"\b\d{4}\b", txt)
+                    for num in numeros:
+                        if num not in [AÑO_ACTUAL, "2025", "2024"]:
+                            ahora = datetime.now()
+                            # Cafeterito Noche juega a las 10:00 PM; si el script corre antes, es de ayer
+                            fecha_res = (ahora - timedelta(days=1)).strftime("%Y-%m-%d") if ahora.hour < 22 else ahora.strftime("%Y-%m-%d")
+                            print(f"🎯 Cafeterito Noche rescatado exitosamente: {num} ({fecha_res})")
+                            return {"fecha": fecha_res, "sorteo": "Cafeterito Noche", "resultado": num}
+    except Exception as e:
+        print(f"[RESCATE CAFETERITO ERROR] {e}")
+        
+    return None
+
 def extraer_resultados_chancehoy():
     resultados = []
     url = "https://www.chancehoy.com/"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
     }
+
+    tiene_cafeterito_noche = False
 
     try:
         res = requests.get(url, headers=headers, timeout=15)
@@ -125,9 +151,7 @@ def extraer_resultados_chancehoy():
             if not sorteo:
                 continue
 
-            # Rastrear la fecha específica del banner inmediatamente superior
             fecha_real = obtener_fecha_de_tarjeta(t, fecha_defecto_hoy)
-            
             clave_procesada = f"{fecha_real}_{sorteo}"
             if clave_procesada in sorteos_fecha_procesados:
                 continue
@@ -145,6 +169,9 @@ def extraer_resultados_chancehoy():
                     else:
                         continue
 
+                if sorteo == "Cafeterito Noche":
+                    tiene_cafeterito_noche = True
+
                 resultados.append({
                     "fecha": fecha_real,
                     "sorteo": sorteo,
@@ -154,6 +181,12 @@ def extraer_resultados_chancehoy():
 
     except Exception as e:
         print(f"[SCRAPER EXCEPCIÓN] {e}")
+
+    # 🚨 RESCATE AUTOMÁTICO: Si no apareció Cafeterito Noche en chancehoy.com, lo trae del respaldo
+    if not tiene_cafeterito_noche:
+        rescate = rescatar_cafeterito_noche()
+        if rescate:
+            resultados.append(rescate)
 
     return resultados
 
@@ -184,7 +217,7 @@ def actualizar_sorteos_json():
     with open(archivo, "w", encoding="utf-8") as f:
         json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ Extracción finalizada con éxito. Total registros en sorteos.json: {len(lista_final)}")
+    print(f"✅ Extracción finalizada. Total registros en sorteos.json: {len(lista_final)}")
 
 if __name__ == "__main__":
     actualizar_sorteos_json()
