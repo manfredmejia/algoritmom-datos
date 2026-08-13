@@ -202,7 +202,7 @@ def actualizar_sorteos_json():
             with open(archivo, "r", encoding="utf-8") as f:
                 datos_viejos = json.load(f)
                 for item in datos_viejos:
-                    if len(str(item.get("fecha"))) == 10 and item.get("resultado") != AÑO_ACTUAL and item.get("sorteo") != "Sinuano Noche":
+                    if len(str(item.get("fecha"))) == 10 and item.get("resultado") and item.get("sorteo") != "Sinuano Noche":
                         clave = f"{item['fecha']}_{item['sorteo']}"
                         memoria_dict[clave] = item
         except Exception:
