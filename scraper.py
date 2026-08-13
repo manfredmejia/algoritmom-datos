@@ -94,65 +94,37 @@ def identificar_sorteo(texto):
 
 def rescatar_cafeterito_noche():
     """
-    RESCATE MULTI-FUENTE BLINDADO:
-    Busca estrictamente en filas de tabla HTML (<tr>) de dos fuentes especializadas.
+    RESCATE QUIRÚRGICO DE CAFETERITO NOCHE:
+    Utiliza las clases exactas de la inspección: div.flex-item > div.nombre + div.numero
     """
-    urls = [
-        "https://www.ganarchance.com/cafeterito-noche",
-        "https://paginasdechance.com/cafeterito-noche/"
-    ]
+    url = "https://www.ganarchance.com/"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
     }
 
-    for url in urls:
-        try:
-            res = requests.get(url, headers=headers, timeout=10)
-            if res.status_code != 200:
-                continue
-
+    try:
+        res = requests.get(url, headers=headers, timeout=12)
+        if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            
-            # 1. Búsqueda estricta en filas de tablas <tr>
-            filas = soup.find_all("tr")
-            for f in filas:
-                txt = f.get_text(" ", strip=True)
-                numeros = re.findall(r"\b\d{4}\b", txt)
-                for num in numeros:
-                    if num in [AÑO_ACTUAL, "2025", "2024"]:
-                        continue
+            items = soup.find_all("div", class_="flex-item")
 
-                    ahora = datetime.now()
-                    fecha_res = None
-                    
-                    match = re.search(r"(\d{1,2})\s+de\s+([a-zA-Z]+)", txt, re.IGNORECASE)
-                    if match:
-                        dia = int(match.group(1))
-                        mes_nom = match.group(2).lower()
-                        if mes_nom in MESES:
-                            mes = int(MESES[mes_nom])
-                            fecha_res = f"{ahora.year}-{mes:02d}-{dia:02d}"
-
-                    if not fecha_res:
-                        fecha_res = (ahora - timedelta(days=1)).strftime("%Y-%m-%d") if ahora.hour < 22 else ahora.strftime("%Y-%m-%d")
-
-                    print(f"✅ Cafeterito Noche rescatado desde {url}: {num} ({fecha_res})")
-                    return {"fecha": fecha_res, "sorteo": "Cafeterito Noche", "resultado": num}
-
-            # 2. Búsqueda secundaria en elementos de lista <li>
-            listas = soup.find_all("li")
-            for l in listas:
-                txt = l.get_text(" ", strip=True)
-                numeros = re.findall(r"\b\d{4}\b", txt)
-                for num in numeros:
-                    if num in [AÑO_ACTUAL, "2025", "2024"]:
-                        continue
-                    ahora = datetime.now()
-                    fecha_res = (ahora - timedelta(days=1)).strftime("%Y-%m-%d") if ahora.hour < 22 else ahora.strftime("%Y-%m-%d")
-                    return {"fecha": fecha_res, "sorteo": "Cafeterito Noche", "resultado": num}
-
-        except Exception as e:
-            print(f"[ERROR RESCATE EN {url}] {e}")
+            for item in items:
+                elem_nombre = item.find("div", class_="nombre")
+                if elem_nombre and "CAFETERITO NOCHE" in normalizar(elem_nombre.text):
+                    elem_numero = item.find("div", class_="numero")
+                    if elem_numero:
+                        # Extraer los 4 dígitos descartando la 5ta cifra
+                        numeros = re.findall(r"\b\d{4}\b", elem_numero.text)
+                        if numeros:
+                            num = numeros[0]
+                            ahora = datetime.now()
+                            # Cafeterito Noche juega a las 10:00 PM (22:00).
+                            fecha_res = (ahora - timedelta(days=1)).strftime("%Y-%m-%d") if ahora.hour < 22 else ahora.strftime("%Y-%m-%d")
+                            
+                            print(f"🎯 Cafeterito Noche rescatado con éxito: {num} ({fecha_res})")
+                            return {"fecha": fecha_res, "sorteo": "Cafeterito Noche", "resultado": num}
+    except Exception as e:
+        print(f"[RESCATE CAFETERITO ERROR] {e}")
 
     return None
 
@@ -213,7 +185,7 @@ def extraer_resultados_chancehoy():
     except Exception as e:
         print(f"[SCRAPER EXCEPCIÓN] {e}")
 
-    # RESCATE AUTOMÁTICO DE CAFETERITO NOCHE
+    # RESCATE QUIRÚRGICO AUTOMÁTICO
     if not tiene_cafeterito_noche:
         rescate = rescatar_cafeterito_noche()
         if rescate:
@@ -248,7 +220,7 @@ def actualizar_sorteos_json():
     with open(archivo, "w", encoding="utf-8") as f:
         json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ Extracción finalizada. Total registros en sorteos.json: {len(lista_final)}")
+    print(f"✅ Extracción finalizada con éxito. Total registros en sorteos.json: {len(lista_final)}")
 
 if __name__ == "__main__":
     actualizar_sorteos_json()
