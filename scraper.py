@@ -13,7 +13,7 @@ def obtener_hora_colombia():
 
 AÑO_ACTUAL = str(obtener_hora_colombia().year)
 
-# Catálogo oficial de loterías y chances del software
+# Catálogo oficial de loterías y chances de ALGORITMOM
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
     ("CHONTICO NOCHE", "Chontico Noche"),
@@ -150,9 +150,12 @@ def rescatar_cafeterito_noche():
                 ):
                     elem_numero = item.find("div", class_="numero")
                     if elem_numero:
-                        numeros = re.findall(r"\d", elem_numero.text)
-                        if len(numeros) >= 4:
-                            num = "".join(numeros[:4])
+                        # Buscar bloques exactos de 4 dígitos descartando el año actual
+                        bloques = re.findall(r"\b\d{4}\b", elem_numero.text)
+                        bloques_validos = [b for b in bloques if b != AÑO_ACTUAL]
+
+                        if bloques_validos:
+                            num = bloques_validos[0]
                             ahora = obtener_hora_colombia()
                             fecha_res = (
                                 (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -177,8 +180,7 @@ def rescatar_cafeterito_noche():
 def rescatar_astro_luna():
     """RESCATE QUIRÚRGICO DE ASTRO LUNA (ganarchance.com)
 
-    Extrae quirúrgicamente según la estructura: div.flex-item > div.nombre +
-    div.numero > span.serie
+    Captura desde: div.flex-item > div.nombre + div.numero > span.serie
     """
     url = "https://www.ganarchance.com/"
     headers = {
@@ -197,8 +199,9 @@ def rescatar_astro_luna():
                 if elem_nombre and "ASTRO LUNA" in normalizar(elem_nombre.text):
                     elem_numero = item.find("div", class_="numero")
                     if elem_numero:
-                        # 1. Extraer los 4 dígitos
-                        numeros = re.findall(r"\d", elem_numero.text)
+                        # 1. Extraer bloque de 4 dígitos ignorando el año actual
+                        bloques = re.findall(r"\b\d{4}\b", elem_numero.text)
+                        bloques_validos = [b for b in bloques if b != AÑO_ACTUAL]
 
                         # 2. Buscar el signo en span.serie o en todo el bloque
                         elem_serie = elem_numero.find("span", class_="serie")
@@ -209,8 +212,8 @@ def rescatar_astro_luna():
                         )
                         signo = extraer_signo(txt_signo)
 
-                        if len(numeros) >= 4 and signo:
-                            num = "".join(numeros[:4])
+                        if bloques_validos and signo:
+                            num = bloques_validos[0]
                             ahora = obtener_hora_colombia()
 
                             # Astro Luna juega a las 22:30 Hora Colombia
@@ -268,7 +271,8 @@ def extraer_resultados_chancehoy():
                 )
 
                 sorteo = identificar_sorteo(txt_titulo)
-                if not sorteo:
+                if not sorteo or sorteo == "Astro Luna":
+                    # Forzamos a que Astro Luna pase SIEMPRE por el rescate quirúrgico de ganarchance.com
                     continue
 
                 fecha_real = obtener_fecha_de_tarjeta(t, fecha_defecto_hoy)
@@ -276,40 +280,25 @@ def extraer_resultados_chancehoy():
                 if clave_procesada in sorteos_fecha_procesados:
                     continue
 
-                txt_tarjeta_completo = t.get_text(" ", strip=True)
-                txt_resultado_limpio = (
-                    txt_tarjeta_completo.replace(txt_titulo, "").strip()
-                    if elem_titulo
-                    else txt_tarjeta_completo
-                )
+                txt_tarjeta = t.get_text(" ", strip=True)
                 html_tarjeta = str(t)
 
-                digitos = re.findall(r"\d", txt_resultado_limpio)
+                # Buscar 4 dígitos exactos evitando tomar los números del año actual
+                cifras = re.findall(r"\b\d{4}\b", txt_tarjeta)
+                cifras_validas = [c for c in cifras if c != AÑO_ACTUAL]
 
-                if len(digitos) < 4:
-                    cifras_bloque = re.findall(
-                        r"\b\d{4}\b", txt_tarjeta_completo
-                    )
-                    if cifras_bloque:
-                        digitos = list(cifras_bloque[-1])
-
-                if len(digitos) >= 4:
-                    cifra_4 = "".join(digitos[:4])
+                if cifras_validas:
+                    cifra_4 = cifras_validas[0]
 
                     if "Astro" in sorteo:
-                        signo = extraer_signo(
-                            txt_tarjeta_completo + " " + html_tarjeta
-                        )
+                        signo = extraer_signo(txt_tarjeta + " " + html_tarjeta)
                         if signo:
                             cifra_4 = f"{cifra_4}-{signo}"
                         else:
-                            # Si no se extrae el signo en ChanceHoy, no se da por completado para forzar el rescate
                             continue
 
                     if sorteo == "Cafeterito Noche":
                         tiene_cafeterito_noche = True
-                    elif sorteo == "Astro Luna":
-                        tiene_astro_luna = True
 
                     resultados.append({
                         "fecha": fecha_real,
@@ -321,16 +310,16 @@ def extraer_resultados_chancehoy():
     except Exception as e:
         print(f"[SCRAPER EXCEPCIÓN] {e}")
 
-    # RESCATES AUTOMÁTICOS EN CASO DE FALLO EN CHANCEHOY
+    # RESCATES QUIRÚRGICOS GARANTIZADOS DESDE GANARCHANCE.COM
     if not tiene_cafeterito_noche:
         rescate_caf = rescatar_cafeterito_noche()
         if rescate_caf:
             resultados.append(rescate_caf)
 
-    if not tiene_astro_luna:
-        rescate_astro = rescatar_astro_luna()
-        if rescate_astro:
-            resultados.append(rescate_astro)
+    # Astro Luna siempre se procesa por ganarchance.com para máxima precisión
+    rescate_astro = rescatar_astro_luna()
+    if rescate_astro:
+        resultados.append(rescate_astro)
 
     return resultados
 
