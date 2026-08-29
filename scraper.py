@@ -7,7 +7,6 @@ from bs4 import BeautifulSoup
 
 AÑO_ACTUAL = str(datetime.now().year)
 
-# Catálogo oficial de loterías y chances
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
     ("CHONTICO NOCHE", "Chontico Noche"),
@@ -50,6 +49,7 @@ SIGNOS = [
     "VIRGO",
     "LIBRA",
     "ESCORPIO",
+    "ESCORPION",
     "SAGITARIO",
     "CAPRICORNIO",
     "ACUARIO",
@@ -83,7 +83,7 @@ def extraer_signo(texto):
     t_norm = normalizar(texto)
     for s in SIGNOS:
         if s in t_norm:
-            return s
+            return "ESCORPIO" if s == "ESCORPION" else s
     return None
 
 
@@ -123,6 +123,59 @@ def identificar_sorteo(texto):
     return None
 
 
+def extraer_cifra_4(texto):
+    digitos = re.findall(r"\b\d\b", texto)
+    if len(digitos) >= 4:
+        return "".join(digitos[:4])
+    bloques = re.findall(r"\b\d{4}\b", texto)
+    if bloques:
+        return bloques[0]
+    return None
+
+
+def rescatar_astro_luna():
+    url = "https://www.ganarchance.com/"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        res = requests.get(url, headers=headers, timeout=12)
+        if res.status_code == 200:
+            soup = BeautifulSoup(res.text, "html.parser")
+            txt_pagina = soup.get_text(" ", strip=True)
+            fecha_real = extraer_fecha_de_encabezado_texto(txt_pagina)
+
+            if not fecha_real:
+                ahora = datetime.now()
+                fecha_real = (
+                    (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
+                    if ahora.hour < 22
+                    else ahora.strftime("%Y-%m-%d")
+                )
+
+            items = soup.find_all("div", class_="flex-item")
+            for item in items:
+                elem_nombre = item.find("div", class_="nombre")
+                if elem_nombre and "ASTRO LUNA" in normalizar(elem_nombre.text):
+                    elem_numero = item.find("div", class_="numero")
+                    if elem_numero:
+                        txt_num = elem_numero.get_text(" ", strip=True)
+                        cifra = extraer_cifra_4(txt_num)
+                        signo = extraer_signo(item.get_text(" ", strip=True))
+
+                        if cifra and signo:
+                            print(
+                                f"🎯 Rescatado Astro Luna: {cifra}-{signo}"
+                                f" ({fecha_real})"
+                            )
+                            return {
+                                "fecha": fecha_real,
+                                "sorteo": "Astro Luna",
+                                "resultado": f"{cifra}-{signo}",
+                            }
+    except Exception as e:
+        print(f"[RESCATE ASTRO LUNA ERROR] {e}")
+    return None
+
+
 def rescatar_cafeterito_noche():
     url = "https://www.ganarchance.com/"
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -138,9 +191,10 @@ def rescatar_cafeterito_noche():
                 ):
                     elem_numero = item.find("div", class_="numero")
                     if elem_numero:
-                        numeros = re.findall(r"\b\d{4}\b", elem_numero.text)
-                        if numeros:
-                            num = numeros[0]
+                        cifra = extraer_cifra_4(
+                            elem_numero.get_text(" ", strip=True)
+                        )
+                        if cifra:
                             ahora = datetime.now()
                             fecha_res = (
                                 (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -150,60 +204,10 @@ def rescatar_cafeterito_noche():
                             return {
                                 "fecha": fecha_res,
                                 "sorteo": "Cafeterito Noche",
-                                "resultado": num,
+                                "resultado": cifra,
                             }
     except Exception as e:
         print(f"[RESCATE CAFETERITO ERROR] {e}")
-    return None
-
-
-def rescatar_astro_luna():
-    """RESCATE DE ASTRO LUNA EXTRAYENDO LA FECHA REAL DEL ENCABEZADO DE GANARCHANCE.COM"""
-    url = "https://www.ganarchance.com/"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    try:
-        res = requests.get(url, headers=headers, timeout=12)
-        if res.status_code == 200:
-            soup = BeautifulSoup(res.text, "html.parser")
-
-            # 1. Extraer la fecha explícita del banner superior (ej: "27 DE AGOSTO DE 2026")
-            fecha_res = None
-            txt_pagina = soup.get_text(" ", strip=True)
-            fecha_hallada = extraer_fecha_de_encabezado_texto(txt_pagina)
-
-            if fecha_hallada:
-                fecha_res = fecha_hallada
-            else:
-                ahora = datetime.now()
-                fecha_res = (
-                    (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
-                    if ahora.hour < 22
-                    else ahora.strftime("%Y-%m-%d")
-                )
-
-            # 2. Extraer el resultado y signo de Astro Luna
-            items = soup.find_all("div", class_="flex-item")
-            for item in items:
-                elem_nombre = item.find("div", class_="nombre")
-                if elem_nombre and "ASTRO LUNA" in normalizar(elem_nombre.text):
-                    elem_numero = item.find("div", class_="numero")
-                    if elem_numero:
-                        digitos = re.findall(r"\d", elem_numero.text)
-                        signo = extraer_signo(item.get_text(" ", strip=True))
-
-                        if len(digitos) >= 4 and signo:
-                            num = "".join(digitos[:4])
-                            print(
-                                f"🎯 Astro Luna rescatado: {num}-{signo}"
-                                f" ({fecha_res})"
-                            )
-                            return {
-                                "fecha": fecha_res,
-                                "sorteo": "Astro Luna",
-                                "resultado": f"{num}-{signo}",
-                            }
-    except Exception as e:
-        print(f"[RESCATE ASTRO LUNA ERROR] {e}")
     return None
 
 
@@ -220,7 +224,6 @@ def extraer_resultados_chancehoy():
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
             fecha_defecto_hoy = datetime.now().strftime("%Y-%m-%d")
-
             tarjetas = soup.find_all("a", class_="box-post")
             sorteos_fecha_procesados = set()
 
@@ -242,11 +245,9 @@ def extraer_resultados_chancehoy():
                     continue
 
                 txt_tarjeta = t.get_text(" ", strip=True)
-                digitos = re.findall(r"\b\d\b", txt_tarjeta)
+                cifra_4 = extraer_cifra_4(txt_tarjeta)
 
-                if len(digitos) >= 4:
-                    cifra_4 = "".join(digitos[:4])
-
+                if cifra_4:
                     if "Astro" in sorteo:
                         signo = extraer_signo(txt_tarjeta)
                         if signo:
@@ -269,9 +270,9 @@ def extraer_resultados_chancehoy():
         print(f"[SCRAPER EXCEPCIÓN] {e}")
 
     if not tiene_cafeterito_noche:
-        rescate = rescatar_cafeterito_noche()
-        if rescate:
-            resultados.append(rescate)
+        rescate_caf = rescatar_cafeterito_noche()
+        if rescate_caf:
+            resultados.append(rescate_caf)
 
     if not tiene_astro_luna:
         rescate_astro = rescatar_astro_luna()
