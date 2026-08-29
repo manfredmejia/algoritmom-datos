@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 
 
 def obtener_hora_colombia():
+    """Retorna la fecha y hora actual ajustada a Colombia (UTC-5)."""
     return datetime.utcnow() - timedelta(hours=5)
 
 
@@ -90,6 +91,7 @@ def extraer_signo(texto):
 
 
 def extraer_fecha_de_encabezado_texto(texto):
+    """Busca patrones de fecha como '27 DE AGOSTO DE 2026' y los convierte a YYYY-MM-DD."""
     match = re.search(
         r"(\d{1,2})\s+DE\s+([A-Z]+)\s+DE\s+(\d{4})", texto, re.IGNORECASE
     )
@@ -103,17 +105,36 @@ def extraer_fecha_de_encabezado_texto(texto):
 
 
 def obtener_fecha_de_tarjeta(tarjeta, fecha_defecto):
-    elem_prev = tarjeta.find_previous(
-        ["p", "div", "h1", "h2", "h3", "section", "header"]
-    )
+    """Busca hacia atrás en el árbol HTML el encabezado de fecha más cercano."""
+    elem_prev = tarjeta.find_previous([
+        "p",
+        "div",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "section",
+        "header",
+        "strong",
+        "b",
+    ])
     while elem_prev:
         txt_prev = elem_prev.get_text(" ", strip=True)
         fecha_hallada = extraer_fecha_de_encabezado_texto(txt_prev)
         if fecha_hallada:
             return fecha_hallada
-        elem_prev = elem_prev.find_previous(
-            ["p", "div", "h1", "h2", "h3", "section", "header"]
-        )
+        elem_prev = elem_prev.find_previous([
+            "p",
+            "div",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "section",
+            "header",
+            "strong",
+            "b",
+        ])
     return fecha_defecto
 
 
@@ -125,88 +146,69 @@ def identificar_sorteo(texto):
     return None
 
 
-def rescatar_cafeterito_noche():
+def rescatar_desde_ganarchance():
+    """RESCATE QUIRÚRGICO DESDE GANARCHANCE.COM
+
+    Extrae los datos leyendo la fecha real del banner superior en lugar de
+    calcular la hora.
+    """
+    resultados_rescatados = []
     url = "https://www.ganarchance.com/"
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         )
     }
+
     try:
         res = requests.get(url, headers=headers, timeout=12)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            for item in soup.find_all("div", class_="flex-item"):
-                elem_nombre = item.find("div", class_="nombre")
-                if elem_nombre and "CAFETERITO NOCHE" in normalizar(
-                    elem_nombre.text
-                ):
-                    elem_numero = item.find("div", class_="numero")
-                    if elem_numero:
-                        digitos = re.findall(r"\d", elem_numero.text)
-                        if len(digitos) >= 4:
-                            num = "".join(digitos[:4])
-                            ahora = obtener_hora_colombia()
-                            fecha_res = (
-                                (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
-                                if ahora.hour < 22
-                                else ahora.strftime("%Y-%m-%d")
-                            )
-                            print(
-                                f"🎯 Cafeterito Noche rescatado: {num}"
-                                f" ({fecha_res})"
-                            )
-                            return {
-                                "fecha": fecha_res,
-                                "sorteo": "Cafeterito Noche",
-                                "resultado": num,
-                            }
-    except Exception as e:
-        print(f"[RESCATE CAFETERITO ERROR] {e}")
-    return None
+            fecha_defecto_hoy = obtener_hora_colombia().strftime("%Y-%m-%d")
+            items = soup.find_all("div", class_="flex-item")
 
-
-def rescatar_astro_luna():
-    url = "https://www.ganarchance.com/"
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        )
-    }
-    try:
-        res = requests.get(url, headers=headers, timeout=12)
-        if res.status_code == 200:
-            soup = BeautifulSoup(res.text, "html.parser")
-            for item in soup.find_all("div", class_="flex-item"):
+            for item in items:
                 elem_nombre = item.find("div", class_="nombre")
-                if elem_nombre and "ASTRO LUNA" in normalizar(elem_nombre.text):
-                    elem_numero = item.find("div", class_="numero")
-                    if elem_numero:
-                        digitos = re.findall(r"\d", elem_numero.text)
-                        signo = extraer_signo(item.text)
-                        if len(digitos) >= 4 and signo:
-                            num = "".join(digitos[:4])
-                            ahora = obtener_hora_colombia()
-                            fecha_res = (
-                                (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
-                                if (
-                                    ahora.hour < 22
-                                    or (ahora.hour == 22 and ahora.minute < 30)
-                                )
-                                else ahora.strftime("%Y-%m-%d")
-                            )
-                            print(
-                                f"🎯 Astro Luna rescatado con éxito:"
-                                f" {num}-{signo} ({fecha_res})"
-                            )
-                            return {
-                                "fecha": fecha_res,
-                                "sorteo": "Astro Luna",
-                                "resultado": f"{num}-{signo}",
-                            }
+                if not elem_nombre:
+                    continue
+
+                nombre_txt = elem_nombre.get_text(" ", strip=True)
+                sorteo_oficial = identificar_sorteo(nombre_txt)
+                if not sorteo_oficial:
+                    continue
+
+                elem_numero = item.find("div", class_="numero")
+                if not elem_numero:
+                    continue
+
+                digitos = re.findall(r"\d", elem_numero.text)
+                if len(digitos) < 4:
+                    continue
+
+                cifra_4 = "".join(digitos[:4])
+                fecha_real = obtener_fecha_de_tarjeta(item, fecha_defecto_hoy)
+
+                if "Astro" in sorteo_oficial:
+                    signo = extraer_signo(item.get_text(" ", strip=True))
+                    if signo:
+                        cifra_4 = f"{cifra_4}-{signo}"
+                    else:
+                        continue
+
+                resultados_rescatados.append({
+                    "fecha": fecha_real,
+                    "sorteo": sorteo_oficial,
+                    "resultado": cifra_4,
+                })
+                print(
+                    f"🎯 Rescatado de ganarchance: {sorteo_oficial} ->"
+                    f" {cifra_4} ({fecha_real})"
+                )
+
     except Exception as e:
-        print(f"[RESCATE ASTRO LUNA ERROR] {e}")
-    return None
+        print(f"[RESCATE GANARCHANCE ERROR] {e}")
+
+    return resultados_rescatados
 
 
 def extraer_resultados_chancehoy():
@@ -217,9 +219,6 @@ def extraer_resultados_chancehoy():
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         )
     }
-
-    tiene_cafeterito_noche = False
-    tiene_astro_luna = False
 
     try:
         res = requests.get(url, headers=headers, timeout=15)
@@ -259,11 +258,6 @@ def extraer_resultados_chancehoy():
                         else:
                             continue
 
-                    if sorteo == "Cafeterito Noche":
-                        tiene_cafeterito_noche = True
-                    elif sorteo == "Astro Luna":
-                        tiene_astro_luna = True
-
                     resultados.append({
                         "fecha": fecha_real,
                         "sorteo": sorteo,
@@ -272,16 +266,6 @@ def extraer_resultados_chancehoy():
                     sorteos_fecha_procesados.add(clave_procesada)
     except Exception as e:
         print(f"[SCRAPER EXCEPCIÓN] {e}")
-
-    if not tiene_cafeterito_noche:
-        rescate_caf = rescatar_cafeterito_noche()
-        if rescate_caf:
-            resultados.append(rescate_caf)
-
-    if not tiene_astro_luna:
-        rescate_astro = rescatar_astro_luna()
-        if rescate_astro:
-            resultados.append(rescate_astro)
 
     return resultados
 
@@ -305,9 +289,14 @@ def actualizar_sorteos_json():
         except Exception as e:
             print(f"[MEMORIA JSON ERROR] {e}")
 
+    # 1. Extraer desde chancehoy.com
     nuevos = extraer_resultados_chancehoy()
 
-    for item in nuevos:
+    # 2. Rescatar desde ganarchance.com (para Astro Luna, Cafeterito Noche, etc., con fechas reales)
+    rescatados = rescatar_desde_ganarchance()
+
+    # Combinar ambas fuentes
+    for item in nuevos + rescatados:
         clave = f"{item['fecha']}_{item['sorteo']}"
         memoria_dict[clave] = item
 
