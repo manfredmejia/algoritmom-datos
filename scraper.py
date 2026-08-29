@@ -5,9 +5,12 @@ from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
 
-AÑO_ACTUAL = str(datetime.now().year)
 
-# Catálogo oficial de loterías y chances de ALGORITMOM
+def obtener_hora_colombia():
+    """Retorna la fecha y hora actual en zona horaria de Colombia (UTC-5)."""
+    return datetime.utcnow() - timedelta(hours=5)
+
+
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
     ("CHONTICO NOCHE", "Chontico Noche"),
@@ -128,24 +131,24 @@ def rescatar_cafeterito_noche():
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         )
     }
     try:
         res = requests.get(url, headers=headers, timeout=12)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            items = soup.find_all("div", class_="flex-item")
-            for item in items:
+            for item in soup.find_all("div", class_="flex-item"):
                 elem_nombre = item.find("div", class_="nombre")
                 if elem_nombre and "CAFETERITO NOCHE" in normalizar(
                     elem_nombre.text
                 ):
                     elem_numero = item.find("div", class_="numero")
                     if elem_numero:
-                        numeros = re.findall(r"\d", elem_numero.text)
-                        if len(numeros) >= 4:
-                            num = "".join(numeros[:4])
-                            ahora = datetime.now()
+                        digitos = re.findall(r"\d", elem_numero.text)
+                        if len(digitos) >= 4:
+                            num = "".join(digitos[:4])
+                            ahora = obtener_hora_colombia()
                             fecha_res = (
                                 (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
                                 if ahora.hour < 22
@@ -162,32 +165,37 @@ def rescatar_cafeterito_noche():
 
 
 def rescatar_astro_luna():
-    """RESCATE INCONDICIONAL DE ASTRO LUNA DESDE GANARCHANCE.COM"""
+    """RESCATE DE ASTRO LUNA DESDE GANARCHANCE.COM"""
     url = "https://www.ganarchance.com/"
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         )
     }
     try:
         res = requests.get(url, headers=headers, timeout=12)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            items = soup.find_all("div", class_="flex-item")
-            for item in items:
+            for item in soup.find_all("div", class_="flex-item"):
                 elem_nombre = item.find("div", class_="nombre")
                 if elem_nombre and "ASTRO LUNA" in normalizar(elem_nombre.text):
                     elem_numero = item.find("div", class_="numero")
                     if elem_numero:
-                        txt_num = elem_numero.get_text(" ", strip=True)
-                        digitos = re.findall(r"\d", txt_num)
+                        digitos = re.findall(r"\d", elem_numero.text)
 
-                        # Extrae el signo desde el span.serie o desde todo el item
-                        signo = extraer_signo(item.get_text(" ", strip=True))
+                        # Extraer signo explícitamente desde span.serie o desde el contenedor
+                        elem_serie = elem_numero.find("span", class_="serie")
+                        txt_signo = (
+                            elem_serie.text
+                            if elem_serie
+                            else item.get_text(" ", strip=True)
+                        )
+                        signo = extraer_signo(txt_signo)
 
                         if len(digitos) >= 4 and signo:
                             num = "".join(digitos[:4])
-                            ahora = datetime.now()
+                            ahora = obtener_hora_colombia()
                             fecha_res = (
                                 (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
                                 if (
@@ -197,8 +205,8 @@ def rescatar_astro_luna():
                                 else ahora.strftime("%Y-%m-%d")
                             )
                             print(
-                                f"🎯 Astro Luna rescatado con éxito:"
-                                f" {num}-{signo} ({fecha_res})"
+                                f"🎯 Astro Luna rescatado: {num}-{signo}"
+                                f" ({fecha_res})"
                             )
                             return {
                                 "fecha": fecha_res,
@@ -216,16 +224,18 @@ def extraer_resultados_chancehoy():
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         )
     }
 
     tiene_cafeterito_noche = False
+    tiene_astro_luna = False
 
     try:
         res = requests.get(url, headers=headers, timeout=15)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            fecha_defecto_hoy = datetime.now().strftime("%Y-%m-%d")
+            fecha_defecto_hoy = obtener_hora_colombia().strftime("%Y-%m-%d")
             tarjetas = soup.find_all("a", class_="box-post")
             sorteos_fecha_procesados = set()
 
@@ -238,8 +248,7 @@ def extraer_resultados_chancehoy():
                 )
 
                 sorteo = identificar_sorteo(txt_titulo)
-                # Ignoramos Astro Luna de chancehoy para forzar su captura limpia desde ganarchance.com
-                if not sorteo or sorteo == "Astro Luna":
+                if not sorteo:
                     continue
 
                 fecha_real = obtener_fecha_de_tarjeta(t, fecha_defecto_hoy)
@@ -258,10 +267,13 @@ def extraer_resultados_chancehoy():
                         if signo:
                             cifra_4 = f"{cifra_4}-{signo}"
                         else:
+                            # Si ChanceHoy no trae el signo, no marcamos 'tiene_astro_luna' para forzar el rescate
                             continue
 
                     if sorteo == "Cafeterito Noche":
                         tiene_cafeterito_noche = True
+                    elif sorteo == "Astro Luna":
+                        tiene_astro_luna = True
 
                     resultados.append({
                         "fecha": fecha_real,
@@ -272,15 +284,16 @@ def extraer_resultados_chancehoy():
     except Exception as e:
         print(f"[SCRAPER EXCEPCIÓN] {e}")
 
+    # RESCATES EN CASO DE QUE FALTE ALGUNO
     if not tiene_cafeterito_noche:
         rescate_caf = rescatar_cafeterito_noche()
         if rescate_caf:
             resultados.append(rescate_caf)
 
-    # RESCATE OBLIGATORIO DE ASTRO LUNA (Garantiza siempre datos limpios)
-    rescate_astro = rescatar_astro_luna()
-    if rescate_astro:
-        resultados.append(rescate_astro)
+    if not tiene_astro_luna:
+        rescate_astro = rescatar_astro_luna()
+        if rescate_astro:
+            resultados.append(rescate_astro)
 
     return resultados
 
@@ -301,8 +314,8 @@ def actualizar_sorteos_json():
                     ):
                         clave = f"{item['fecha']}_{item['sorteo']}"
                         memoria_dict[clave] = item
-        except Exception:
-            memoria_dict = {}
+        except Exception as e:
+            print(f"[MEMORIA JSON ERROR] {e}")
 
     nuevos = extraer_resultados_chancehoy()
 
