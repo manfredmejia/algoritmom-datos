@@ -7,13 +7,9 @@ from bs4 import BeautifulSoup
 
 
 def obtener_hora_colombia():
-    """Retorna la fecha y hora actual ajustada a Colombia (UTC-5)."""
     return datetime.utcnow() - timedelta(hours=5)
 
 
-AÑO_ACTUAL = str(obtener_hora_colombia().year)
-
-# Catálogo oficial de loterías y chances de ALGORITMOM
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
     ("CHONTICO NOCHE", "Chontico Noche"),
@@ -85,8 +81,8 @@ def normalizar(txt):
     return t
 
 
-def extraer_signo(texto_o_html):
-    t_norm = normalizar(texto_o_html)
+def extraer_signo(texto):
+    t_norm = normalizar(texto)
     for s in SIGNOS:
         if s in t_norm:
             return s
@@ -130,7 +126,6 @@ def identificar_sorteo(texto):
 
 
 def rescatar_cafeterito_noche():
-    """RESCATE QUIRÚRGICO DE CAFETERITO NOCHE (ganarchance.com)"""
     url = "https://www.ganarchance.com/"
     headers = {
         "User-Agent": (
@@ -141,21 +136,16 @@ def rescatar_cafeterito_noche():
         res = requests.get(url, headers=headers, timeout=12)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            items = soup.find_all("div", class_="flex-item")
-
-            for item in items:
+            for item in soup.find_all("div", class_="flex-item"):
                 elem_nombre = item.find("div", class_="nombre")
                 if elem_nombre and "CAFETERITO NOCHE" in normalizar(
                     elem_nombre.text
                 ):
                     elem_numero = item.find("div", class_="numero")
                     if elem_numero:
-                        # Buscar bloques exactos de 4 dígitos descartando el año actual
-                        bloques = re.findall(r"\b\d{4}\b", elem_numero.text)
-                        bloques_validos = [b for b in bloques if b != AÑO_ACTUAL]
-
-                        if bloques_validos:
-                            num = bloques_validos[0]
+                        digitos = re.findall(r"\d", elem_numero.text)
+                        if len(digitos) >= 4:
+                            num = "".join(digitos[:4])
                             ahora = obtener_hora_colombia()
                             fecha_res = (
                                 (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
@@ -163,7 +153,7 @@ def rescatar_cafeterito_noche():
                                 else ahora.strftime("%Y-%m-%d")
                             )
                             print(
-                                f"🎯 Cafeterito Noche rescatado con éxito: {num}"
+                                f"🎯 Cafeterito Noche rescatado: {num}"
                                 f" ({fecha_res})"
                             )
                             return {
@@ -173,15 +163,10 @@ def rescatar_cafeterito_noche():
                             }
     except Exception as e:
         print(f"[RESCATE CAFETERITO ERROR] {e}")
-
     return None
 
 
 def rescatar_astro_luna():
-    """RESCATE QUIRÚRGICO DE ASTRO LUNA (ganarchance.com)
-
-    Captura desde: div.flex-item > div.nombre + div.numero > span.serie
-    """
     url = "https://www.ganarchance.com/"
     headers = {
         "User-Agent": (
@@ -192,43 +177,27 @@ def rescatar_astro_luna():
         res = requests.get(url, headers=headers, timeout=12)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            items = soup.find_all("div", class_="flex-item")
-
-            for item in items:
+            for item in soup.find_all("div", class_="flex-item"):
                 elem_nombre = item.find("div", class_="nombre")
                 if elem_nombre and "ASTRO LUNA" in normalizar(elem_nombre.text):
                     elem_numero = item.find("div", class_="numero")
                     if elem_numero:
-                        # 1. Extraer bloque de 4 dígitos ignorando el año actual
-                        bloques = re.findall(r"\b\d{4}\b", elem_numero.text)
-                        bloques_validos = [b for b in bloques if b != AÑO_ACTUAL]
-
-                        # 2. Buscar el signo en span.serie o en todo el bloque
-                        elem_serie = elem_numero.find("span", class_="serie")
-                        txt_signo = (
-                            elem_serie.text
-                            if elem_serie
-                            else item.get_text(" ", strip=True)
-                        )
-                        signo = extraer_signo(txt_signo)
-
-                        if bloques_validos and signo:
-                            num = bloques_validos[0]
+                        digitos = re.findall(r"\d", elem_numero.text)
+                        signo = extraer_signo(item.text)
+                        if len(digitos) >= 4 and signo:
+                            num = "".join(digitos[:4])
                             ahora = obtener_hora_colombia()
-
-                            # Astro Luna juega a las 22:30 Hora Colombia
-                            if ahora.hour < 22 or (
-                                ahora.hour == 22 and ahora.minute < 30
-                            ):
-                                fecha_res = (
-                                    ahora - timedelta(days=1)
-                                ).strftime("%Y-%m-%d")
-                            else:
-                                fecha_res = ahora.strftime("%Y-%m-%d")
-
+                            fecha_res = (
+                                (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
+                                if (
+                                    ahora.hour < 22
+                                    or (ahora.hour == 22 and ahora.minute < 30)
+                                )
+                                else ahora.strftime("%Y-%m-%d")
+                            )
                             print(
-                                f"🎯 Astro Luna rescatado con éxito: {num}-{signo}"
-                                f" ({fecha_res})"
+                                f"🎯 Astro Luna rescatado con éxito:"
+                                f" {num}-{signo} ({fecha_res})"
                             )
                             return {
                                 "fecha": fecha_res,
@@ -237,7 +206,6 @@ def rescatar_astro_luna():
                             }
     except Exception as e:
         print(f"[RESCATE ASTRO LUNA ERROR] {e}")
-
     return None
 
 
@@ -258,7 +226,6 @@ def extraer_resultados_chancehoy():
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
             fecha_defecto_hoy = obtener_hora_colombia().strftime("%Y-%m-%d")
-
             tarjetas = soup.find_all("a", class_="box-post")
             sorteos_fecha_procesados = set()
 
@@ -271,8 +238,7 @@ def extraer_resultados_chancehoy():
                 )
 
                 sorteo = identificar_sorteo(txt_titulo)
-                if not sorteo or sorteo == "Astro Luna":
-                    # Forzamos a que Astro Luna pase SIEMPRE por el rescate quirúrgico de ganarchance.com
+                if not sorteo:
                     continue
 
                 fecha_real = obtener_fecha_de_tarjeta(t, fecha_defecto_hoy)
@@ -281,17 +247,13 @@ def extraer_resultados_chancehoy():
                     continue
 
                 txt_tarjeta = t.get_text(" ", strip=True)
-                html_tarjeta = str(t)
+                digitos = re.findall(r"\d", txt_tarjeta)
 
-                # Buscar 4 dígitos exactos evitando tomar los números del año actual
-                cifras = re.findall(r"\b\d{4}\b", txt_tarjeta)
-                cifras_validas = [c for c in cifras if c != AÑO_ACTUAL]
-
-                if cifras_validas:
-                    cifra_4 = cifras_validas[0]
+                if len(digitos) >= 4:
+                    cifra_4 = "".join(digitos[:4])
 
                     if "Astro" in sorteo:
-                        signo = extraer_signo(txt_tarjeta + " " + html_tarjeta)
+                        signo = extraer_signo(txt_tarjeta)
                         if signo:
                             cifra_4 = f"{cifra_4}-{signo}"
                         else:
@@ -299,6 +261,8 @@ def extraer_resultados_chancehoy():
 
                     if sorteo == "Cafeterito Noche":
                         tiene_cafeterito_noche = True
+                    elif sorteo == "Astro Luna":
+                        tiene_astro_luna = True
 
                     resultados.append({
                         "fecha": fecha_real,
@@ -306,20 +270,18 @@ def extraer_resultados_chancehoy():
                         "resultado": cifra_4,
                     })
                     sorteos_fecha_procesados.add(clave_procesada)
-
     except Exception as e:
         print(f"[SCRAPER EXCEPCIÓN] {e}")
 
-    # RESCATES QUIRÚRGICOS GARANTIZADOS DESDE GANARCHANCE.COM
     if not tiene_cafeterito_noche:
         rescate_caf = rescatar_cafeterito_noche()
         if rescate_caf:
             resultados.append(rescate_caf)
 
-    # Astro Luna siempre se procesa por ganarchance.com para máxima precisión
-    rescate_astro = rescatar_astro_luna()
-    if rescate_astro:
-        resultados.append(rescate_astro)
+    if not tiene_astro_luna:
+        rescate_astro = rescatar_astro_luna()
+        if rescate_astro:
+            resultados.append(rescate_astro)
 
     return resultados
 
@@ -342,15 +304,11 @@ def actualizar_sorteos_json():
                         memoria_dict[clave] = item
         except Exception as e:
             print(f"[MEMORIA JSON ERROR] {e}")
-            memoria_dict = {}
 
     nuevos = extraer_resultados_chancehoy()
 
-    registros_nuevos_count = 0
     for item in nuevos:
         clave = f"{item['fecha']}_{item['sorteo']}"
-        if clave not in memoria_dict:
-            registros_nuevos_count += 1
         memoria_dict[clave] = item
 
     lista_final = list(memoria_dict.values())
@@ -360,8 +318,8 @@ def actualizar_sorteos_json():
         json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
     print(
-        f"✅ Extracción finalizada con éxito. Nuevos insertados:"
-        f" {registros_nuevos_count} | Total en sorteos.json: {len(lista_final)}"
+        "✅ Extracción finalizada con éxito. Total en sorteos.json:"
+        f" {len(lista_final)}"
     )
 
 
