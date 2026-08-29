@@ -13,7 +13,7 @@ def obtener_hora_colombia():
 
 AÑO_ACTUAL = str(obtener_hora_colombia().year)
 
-# Catálogo oficial de loterías y chances de tu software
+# Catálogo oficial de loterías y chances del software
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
     ("CHONTICO NOCHE", "Chontico Noche"),
@@ -135,7 +135,6 @@ def rescatar_cafeterito_noche():
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         )
     }
     try:
@@ -176,12 +175,15 @@ def rescatar_cafeterito_noche():
 
 
 def rescatar_astro_luna():
-    """RESCATE QUIRÚRGICO DE ASTRO LUNA (ganarchance.com)"""
+    """RESCATE QUIRÚRGICO DE ASTRO LUNA (ganarchance.com)
+
+    Extrae quirúrgicamente según la estructura: div.flex-item > div.nombre +
+    div.numero > span.serie
+    """
     url = "https://www.ganarchance.com/"
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         )
     }
     try:
@@ -194,39 +196,42 @@ def rescatar_astro_luna():
                 elem_nombre = item.find("div", class_="nombre")
                 if elem_nombre and "ASTRO LUNA" in normalizar(elem_nombre.text):
                     elem_numero = item.find("div", class_="numero")
-                    txt_box = (
-                        elem_numero.get_text(" ", strip=True)
-                        if elem_numero
-                        else item.get_text(" ", strip=True)
-                    )
-                    html_box = (
-                        str(elem_numero) if elem_numero else str(item)
-                    )
+                    if elem_numero:
+                        # 1. Extraer los 4 dígitos
+                        numeros = re.findall(r"\d", elem_numero.text)
 
-                    numeros = re.findall(r"\d", txt_box)
-                    signo = extraer_signo(txt_box + " " + html_box)
-
-                    if len(numeros) >= 4 and signo:
-                        num = "".join(numeros[:4])
-                        ahora = obtener_hora_colombia()
-                        if ahora.hour < 22 or (
-                            ahora.hour == 22 and ahora.minute < 30
-                        ):
-                            fecha_res = (ahora - timedelta(days=1)).strftime(
-                                "%Y-%m-%d"
-                            )
-                        else:
-                            fecha_res = ahora.strftime("%Y-%m-%d")
-
-                        print(
-                            f"🎯 Astro Luna rescatado con éxito: {num}-{signo}"
-                            f" ({fecha_res})"
+                        # 2. Buscar el signo en span.serie o en todo el bloque
+                        elem_serie = elem_numero.find("span", class_="serie")
+                        txt_signo = (
+                            elem_serie.text
+                            if elem_serie
+                            else item.get_text(" ", strip=True)
                         )
-                        return {
-                            "fecha": fecha_res,
-                            "sorteo": "Astro Luna",
-                            "resultado": f"{num}-{signo}",
-                        }
+                        signo = extraer_signo(txt_signo)
+
+                        if len(numeros) >= 4 and signo:
+                            num = "".join(numeros[:4])
+                            ahora = obtener_hora_colombia()
+
+                            # Astro Luna juega a las 22:30 Hora Colombia
+                            if ahora.hour < 22 or (
+                                ahora.hour == 22 and ahora.minute < 30
+                            ):
+                                fecha_res = (
+                                    ahora - timedelta(days=1)
+                                ).strftime("%Y-%m-%d")
+                            else:
+                                fecha_res = ahora.strftime("%Y-%m-%d")
+
+                            print(
+                                f"🎯 Astro Luna rescatado con éxito: {num}-{signo}"
+                                f" ({fecha_res})"
+                            )
+                            return {
+                                "fecha": fecha_res,
+                                "sorteo": "Astro Luna",
+                                "resultado": f"{num}-{signo}",
+                            }
     except Exception as e:
         print(f"[RESCATE ASTRO LUNA ERROR] {e}")
 
@@ -239,7 +244,6 @@ def extraer_resultados_chancehoy():
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         )
     }
 
@@ -272,7 +276,6 @@ def extraer_resultados_chancehoy():
                 if clave_procesada in sorteos_fecha_procesados:
                     continue
 
-                # Aislar el texto del resultado eliminando el título para no capturar los dígitos de la fecha (ej. "26 DE AGOSTO")
                 txt_tarjeta_completo = t.get_text(" ", strip=True)
                 txt_resultado_limpio = (
                     txt_tarjeta_completo.replace(txt_titulo, "").strip()
@@ -283,7 +286,6 @@ def extraer_resultados_chancehoy():
 
                 digitos = re.findall(r"\d", txt_resultado_limpio)
 
-                # Fallback: si al limpiar el título se borraron los dígitos por coincidencia, buscar bloques de 4 dígitos exactos
                 if len(digitos) < 4:
                     cifras_bloque = re.findall(
                         r"\b\d{4}\b", txt_tarjeta_completo
@@ -301,6 +303,7 @@ def extraer_resultados_chancehoy():
                         if signo:
                             cifra_4 = f"{cifra_4}-{signo}"
                         else:
+                            # Si no se extrae el signo en ChanceHoy, no se da por completado para forzar el rescate
                             continue
 
                     if sorteo == "Cafeterito Noche":
