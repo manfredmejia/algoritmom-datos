@@ -7,10 +7,7 @@ from bs4 import BeautifulSoup
 
 
 def obtener_hora_colombia():
-    """Retorna la fecha y hora exacta en zona horaria de Colombia (UTC-5),
-
-    evitando desfasajes al ejecutar en servidores de GitHub Actions (UTC).
-    """
+    """Retorna la fecha y hora actual ajustada a Colombia (UTC-5)."""
     return datetime.utcnow() - timedelta(hours=5)
 
 
@@ -89,10 +86,6 @@ def normalizar(txt):
 
 
 def extraer_signo(texto_o_html):
-    """Busca el signo tanto en el texto visible como en los atributos HTML (ej.
-
-    alt='Piscis').
-    """
     t_norm = normalizar(texto_o_html)
     for s in SIGNOS:
         if s in t_norm:
@@ -142,9 +135,9 @@ def rescatar_cafeterito_noche():
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         )
     }
-
     try:
         res = requests.get(url, headers=headers, timeout=12)
         if res.status_code == 200:
@@ -167,7 +160,6 @@ def rescatar_cafeterito_noche():
                                 if ahora.hour < 22
                                 else ahora.strftime("%Y-%m-%d")
                             )
-
                             print(
                                 f"🎯 Cafeterito Noche rescatado con éxito: {num}"
                                 f" ({fecha_res})"
@@ -184,36 +176,39 @@ def rescatar_cafeterito_noche():
 
 
 def rescatar_astro_luna():
-    """RESCATE QUIRÚRGICO DE ASTRO LUNA (ganarchance.com)
-
-    Garantiza la captura con ajuste exacto a Hora Colombia.
-    """
+    """RESCATE QUIRÚRGICO DE ASTRO LUNA (ganarchance.com)"""
     url = "https://www.ganarchance.com/"
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         )
     }
-
     try:
         res = requests.get(url, headers=headers, timeout=12)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            items = soup.find_all(["div", "li", "tr"])
+            items = soup.find_all("div", class_="flex-item")
 
             for item in items:
-                txt_item = item.get_text(" ", strip=True)
-                txt_html = str(item)
-                txt_norm = normalizar(txt_item)
+                elem_nombre = item.find("div", class_="nombre")
+                if elem_nombre and "ASTRO LUNA" in normalizar(elem_nombre.text):
+                    elem_numero = item.find("div", class_="numero")
+                    txt_box = (
+                        elem_numero.get_text(" ", strip=True)
+                        if elem_numero
+                        else item.get_text(" ", strip=True)
+                    )
+                    html_box = (
+                        str(elem_numero) if elem_numero else str(item)
+                    )
 
-                if "ASTRO LUNA" in txt_norm or "SUPER ASTRO LUNA" in txt_norm:
-                    digitos = re.findall(r"\d", txt_item)
-                    signo = extraer_signo(txt_item + " " + txt_html)
+                    numeros = re.findall(r"\d", txt_box)
+                    signo = extraer_signo(txt_box + " " + html_box)
 
-                    if len(digitos) >= 4 and signo:
-                        num = "".join(digitos[:4])
+                    if len(numeros) >= 4 and signo:
+                        num = "".join(numeros[:4])
                         ahora = obtener_hora_colombia()
-                        # Astro Luna juega a las 22:30 Hora Colombia.
                         if ahora.hour < 22 or (
                             ahora.hour == 22 and ahora.minute < 30
                         ):
@@ -244,6 +239,7 @@ def extraer_resultados_chancehoy():
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            " (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         )
     }
 
@@ -276,18 +272,32 @@ def extraer_resultados_chancehoy():
                 if clave_procesada in sorteos_fecha_procesados:
                     continue
 
-                txt_tarjeta = t.get_text(" ", strip=True)
+                # Aislar el texto del resultado eliminando el título para no capturar los dígitos de la fecha (ej. "26 DE AGOSTO")
+                txt_tarjeta_completo = t.get_text(" ", strip=True)
+                txt_resultado_limpio = (
+                    txt_tarjeta_completo.replace(txt_titulo, "").strip()
+                    if elem_titulo
+                    else txt_tarjeta_completo
+                )
                 html_tarjeta = str(t)
 
-                # Detección flexible de 4 dígitos (bloque continuo o separados)
-                digitos = re.findall(r"\d", txt_tarjeta)
+                digitos = re.findall(r"\d", txt_resultado_limpio)
+
+                # Fallback: si al limpiar el título se borraron los dígitos por coincidencia, buscar bloques de 4 dígitos exactos
+                if len(digitos) < 4:
+                    cifras_bloque = re.findall(
+                        r"\b\d{4}\b", txt_tarjeta_completo
+                    )
+                    if cifras_bloque:
+                        digitos = list(cifras_bloque[-1])
 
                 if len(digitos) >= 4:
                     cifra_4 = "".join(digitos[:4])
 
                     if "Astro" in sorteo:
-                        # Busca el signo en texto y en atributos HTML (ej. alt)
-                        signo = extraer_signo(txt_tarjeta + " " + html_tarjeta)
+                        signo = extraer_signo(
+                            txt_tarjeta_completo + " " + html_tarjeta
+                        )
                         if signo:
                             cifra_4 = f"{cifra_4}-{signo}"
                         else:
@@ -338,13 +348,17 @@ def actualizar_sorteos_json():
                     ):
                         clave = f"{item['fecha']}_{item['sorteo']}"
                         memoria_dict[clave] = item
-        except Exception:
+        except Exception as e:
+            print(f"[MEMORIA JSON ERROR] {e}")
             memoria_dict = {}
 
     nuevos = extraer_resultados_chancehoy()
 
+    registros_nuevos_count = 0
     for item in nuevos:
         clave = f"{item['fecha']}_{item['sorteo']}"
+        if clave not in memoria_dict:
+            registros_nuevos_count += 1
         memoria_dict[clave] = item
 
     lista_final = list(memoria_dict.values())
@@ -354,8 +368,8 @@ def actualizar_sorteos_json():
         json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
     print(
-        "✅ Extracción finalizada con éxito. Total registros en"
-        f" sorteos.json: {len(lista_final)}"
+        f"✅ Extracción finalizada con éxito. Nuevos insertados:"
+        f" {registros_nuevos_count} | Total en sorteos.json: {len(lista_final)}"
     )
 
 
