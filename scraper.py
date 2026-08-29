@@ -5,7 +5,6 @@ import re
 from bs4 import BeautifulSoup
 import requests
 
-AÑO_ACTUAL = str(datetime.now().year)
 
 # Catálogo oficial de loterías y chances de tu software
 REGLAS_LOTERIAS = [
