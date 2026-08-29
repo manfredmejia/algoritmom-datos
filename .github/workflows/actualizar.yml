@@ -2,7 +2,10 @@ name: Auto-Actualizador de Loterías ALGORITMOM
 
 on:
   schedule:
-    - cron: '30 4 * * *'
+    # 🌇 Disparo 1: 18:10 Hora Colombia (23:10 UTC) - Cierre Diurno y Paisita Noche
+    - cron: '10 23 * * *'
+    # 🌙 Disparo 2: 23:00 Hora Colombia (04:00 UTC) - Cierre Nocturno y Principales
+    - cron: '0 4 * * *'
   workflow_dispatch:
 
 permissions:
@@ -38,5 +41,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add sorteos.json
-          git commit -m "Auto-actualización de sorteos: $(date +'%Y-%m-%d')" || exit 0
-          git push --force origin HEAD:main
+          git commit -m "Auto-actualización de sorteos: $(date +'%Y-%m-%d %H:%M UTC')" || exit 0
+          git push origin HEAD:main
