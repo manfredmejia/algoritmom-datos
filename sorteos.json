@@ -1,5 +1,30 @@
 [
   {
+    "fecha": "2026-08-30",
+    "sorteo": "Sinuano Día",
+    "resultado": "2019"
+  },
+  {
+    "fecha": "2026-08-30",
+    "sorteo": "Paisita Noche",
+    "resultado": "4608"
+  },
+  {
+    "fecha": "2026-08-30",
+    "sorteo": "Paisita Día",
+    "resultado": "3596"
+  },
+  {
+    "fecha": "2026-08-30",
+    "sorteo": "Chontico Noche",
+    "resultado": "2548"
+  },
+  {
+    "fecha": "2026-08-30",
+    "sorteo": "Chontico Día",
+    "resultado": "5538"
+  },
+  {
     "fecha": "2026-08-29",
     "sorteo": "Sinuano Día",
     "resultado": "0473"
