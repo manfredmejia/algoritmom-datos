@@ -1,5 +1,55 @@
 [
   {
+    "fecha": "2026-09-01",
+    "sorteo": "Sinuano Día",
+    "resultado": "2942"
+  },
+  {
+    "fecha": "2026-09-01",
+    "sorteo": "Paisita Noche",
+    "resultado": "7424"
+  },
+  {
+    "fecha": "2026-09-01",
+    "sorteo": "Paisita Día",
+    "resultado": "6339"
+  },
+  {
+    "fecha": "2026-09-01",
+    "sorteo": "Dorado Tarde",
+    "resultado": "2859"
+  },
+  {
+    "fecha": "2026-09-01",
+    "sorteo": "Dorado Mañana",
+    "resultado": "5555"
+  },
+  {
+    "fecha": "2026-09-01",
+    "sorteo": "Chontico Noche",
+    "resultado": "9362"
+  },
+  {
+    "fecha": "2026-09-01",
+    "sorteo": "Chontico Día",
+    "resultado": "3628"
+  },
+  {
+    "fecha": "2026-09-01",
+    "sorteo": "Cafeterito Tarde",
+    "resultado": "2635"
+  },
+  {
+    "fecha": "2026-09-01",
+    "sorteo": "Astro Sol",
+    "resultado": "3227-SAGITARIO"
+  },
+  {
+    "fecha": "2026-08-31",
+    "sorteo": "TOLIMA",
+    "resultado": "9721"
+  },
+  {
     "fecha": "2026-08-31",
     "sorteo": "Sinuano Día",
     "resultado": "6679"
@@ -41,8 +91,23 @@
   },
   {
     "fecha": "2026-08-31",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "0391"
+  },
+  {
+    "fecha": "2026-08-31",
+    "sorteo": "CUNDINAMARCA",
+    "resultado": "3478"
+  },
+  {
+    "fecha": "2026-08-31",
     "sorteo": "Astro Sol",
     "resultado": "7703-PISCIS"
+  },
+  {
+    "fecha": "2026-08-31",
+    "sorteo": "Astro Luna",
+    "resultado": "8229-LIBRA"
   },
   {
     "fecha": "2026-08-30",
