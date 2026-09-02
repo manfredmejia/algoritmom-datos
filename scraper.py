@@ -5,8 +5,13 @@ from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
 
-AÑO_ACTUAL = str(datetime.now().year)
 
+def obtener_hora_colombia():
+    """Retorna la fecha y hora actual en zona horaria de Colombia (UTC-5)."""
+    return datetime.utcnow() - timedelta(hours=5)
+
+
+# Catálogo oficial de loterías y chances de ALGORITMOM
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
     ("CHONTICO NOCHE", "Chontico Noche"),
@@ -133,88 +138,16 @@ def extraer_cifra_4(texto):
     return None
 
 
-def rescatar_astro_luna():
-    url = "https://www.ganarchance.com/"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    try:
-        res = requests.get(url, headers=headers, timeout=10)
-        if res.status_code == 200:
-            soup = BeautifulSoup(res.text, "html.parser")
-            items = soup.find_all("div", class_="flex-item")
-            for item in items:
-                elem_nombre = item.find("div", class_="nombre")
-                if elem_nombre and "ASTRO LUNA" in normalizar(elem_nombre.text):
-                    elem_numero = item.find("div", class_="numero")
-                    if elem_numero:
-                        txt_num = elem_numero.get_text(" ", strip=True)
-                        cifra = extraer_cifra_4(txt_num)
-                        signo = extraer_signo(item.get_text(" ", strip=True))
-
-                        if cifra and signo:
-                            return {
-                                "fecha": "2026-08-27",
-                                "sorteo": "Astro Luna",
-                                "resultado": f"{cifra}-{signo}",
-                            }
-    except Exception as e:
-        print(f"[RESCATE ASTRO LUNA WARNING] {e}")
-
-    # 🛡️ RED DE SEGURIDAD GARANTIZADA: Si la red frena o falla la petición web, fuerza el dato exacto del 27 de agosto
-    return {
-        "fecha": "2026-08-27",
-        "sorteo": "Astro Luna",
-        "resultado": "9243-ESCORPIO",
-    }
-
-
-def rescatar_cafeterito_noche():
-    url = "https://www.ganarchance.com/"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    try:
-        res = requests.get(url, headers=headers, timeout=10)
-        if res.status_code == 200:
-            soup = BeautifulSoup(res.text, "html.parser")
-            items = soup.find_all("div", class_="flex-item")
-            for item in items:
-                elem_nombre = item.find("div", class_="nombre")
-                if elem_nombre and "CAFETERITO NOCHE" in normalizar(
-                    elem_nombre.text
-                ):
-                    elem_numero = item.find("div", class_="numero")
-                    if elem_numero:
-                        cifra = extraer_cifra_4(
-                            elem_numero.get_text(" ", strip=True)
-                        )
-                        if cifra:
-                            ahora = datetime.now()
-                            fecha_res = (
-                                (ahora - timedelta(days=1)).strftime("%Y-%m-%d")
-                                if ahora.hour < 22
-                                else ahora.strftime("%Y-%m-%d")
-                            )
-                            return {
-                                "fecha": fecha_res,
-                                "sorteo": "Cafeterito Noche",
-                                "resultado": cifra,
-                            }
-    except Exception as e:
-        print(f"[RESCATE CAFETERITO WARNING] {e}")
-    return None
-
-
 def extraer_resultados_chancehoy():
     resultados = []
     url = "https://www.chancehoy.com/"
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    tiene_cafeterito_noche = False
-    tiene_astro_luna = False
-
     try:
         res = requests.get(url, headers=headers, timeout=12)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            fecha_defecto_hoy = datetime.now().strftime("%Y-%m-%d")
+            fecha_defecto_hoy = obtener_hora_colombia().strftime("%Y-%m-%d")
             tarjetas = soup.find_all("a", class_="box-post")
             sorteos_fecha_procesados = set()
 
@@ -246,11 +179,6 @@ def extraer_resultados_chancehoy():
                         else:
                             continue
 
-                    if sorteo == "Cafeterito Noche":
-                        tiene_cafeterito_noche = True
-                    elif sorteo == "Astro Luna":
-                        tiene_astro_luna = True
-
                     resultados.append({
                         "fecha": fecha_real,
                         "sorteo": sorteo,
@@ -258,25 +186,86 @@ def extraer_resultados_chancehoy():
                     })
                     sorteos_fecha_procesados.add(clave_procesada)
     except Exception as e:
-        print(f"[SCRAPER WARNING] {e}")
-
-    if not tiene_cafeterito_noche:
-        rescate_caf = rescatar_cafeterito_noche()
-        if rescate_caf:
-            resultados.append(rescate_caf)
-
-    if not tiene_astro_luna:
-        rescate_astro = rescatar_astro_luna()
-        if rescate_astro:
-            resultados.append(rescate_astro)
+        print(f"[CHANCEHOY WARNING] {e}")
 
     return resultados
+
+
+def rescate_emergencia_ganarchance(resultados_actuales):
+    """BARRIDO DE EMERGENCIA EN GANARCHANCE.COM
+
+    Verifica qué loterías faltan por capturar y las extrae quirúrgicamente para
+    completar la lista.
+    """
+    sorteos_ya_capturados = {r["sorteo"] for r in resultados_actuales}
+    rescatados = []
+
+    url = "https://www.ganarchance.com/"
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    try:
+        res = requests.get(url, headers=headers, timeout=12)
+        if res.status_code == 200:
+            soup = BeautifulSoup(res.text, "html.parser")
+
+            txt_pagina = soup.get_text(" ", strip=True)
+            fecha_real = extraer_fecha_de_encabezado_texto(txt_pagina)
+            if not fecha_real:
+                fecha_real = obtener_hora_colombia().strftime("%Y-%m-%d")
+
+            items = soup.find_all("div", class_="flex-item")
+            for item in items:
+                elem_nombre = item.find("div", class_="nombre")
+                if not elem_nombre:
+                    continue
+
+                nombre_txt = elem_nombre.get_text(" ", strip=True)
+                sorteo_oficial = identificar_sorteo(nombre_txt)
+
+                if not sorteo_oficial:
+                    continue
+
+                # Si ya fue capturado en chancehoy, lo saltamos
+                if sorteo_oficial in sorteos_ya_capturados:
+                    continue
+
+                elem_numero = item.find("div", class_="numero")
+                if not elem_numero:
+                    continue
+
+                txt_num = elem_numero.get_text(" ", strip=True)
+                cifra = extraer_cifra_4(txt_num)
+
+                if cifra:
+                    if "Astro" in sorteo_oficial:
+                        signo = extraer_signo(item.get_text(" ", strip=True))
+                        if signo:
+                            cifra = f"{cifra}-{signo}"
+                        else:
+                            continue
+
+                    rescatados.append({
+                        "fecha": fecha_real,
+                        "sorteo": sorteo_oficial,
+                        "resultado": cifra,
+                    })
+                    sorteos_ya_capturados.add(sorteo_oficial)
+                    print(
+                        f"🚨 Extraído de Emergencia (ganarchance):"
+                        f" {sorteo_oficial} -> {cifra} ({fecha_real})"
+                    )
+
+    except Exception as e:
+        print(f"[RESCATE GANARCHANCE ERROR] {e}")
+
+    return rescatados
 
 
 def actualizar_sorteos_json():
     archivo = "sorteos.json"
     memoria_dict = {}
 
+    # 1. Cargar historial existente preservando datos antiguos válidos
     if os.path.exists(archivo):
         try:
             with open(archivo, "r", encoding="utf-8") as f:
@@ -289,12 +278,17 @@ def actualizar_sorteos_json():
                     ):
                         clave = f"{item['fecha']}_{item['sorteo']}"
                         memoria_dict[clave] = item
-        except Exception:
-            memoria_dict = {}
+        except Exception as e:
+            print(f"[MEMORIA JSON ERROR] {e}")
 
+    # 2. Extracción principal en chancehoy.com
     nuevos = extraer_resultados_chancehoy()
 
-    for item in nuevos:
+    # 3. Rescate de emergencia en ganarchance.com para cualquier lotería faltante
+    rescatados = rescate_emergencia_ganarchance(nuevos)
+
+    # 4. Unificar todos los datos procesados
+    for item in nuevos + rescatados:
         clave = f"{item['fecha']}_{item['sorteo']}"
         memoria_dict[clave] = item
 
@@ -305,7 +299,7 @@ def actualizar_sorteos_json():
         json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
     print(
-        "✅ Extracción finalizada con éxito. Total registros en"
+        "✅ Extracción unificada finalizada con éxito. Total registros en"
         f" sorteos.json: {len(lista_final)}"
     )
 
