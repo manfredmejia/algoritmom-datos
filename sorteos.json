@@ -16,6 +16,11 @@
   },
   {
     "fecha": "2026-09-01",
+    "sorteo": "HUILA",
+    "resultado": "2876"
+  },
+  {
+    "fecha": "2026-09-01",
     "sorteo": "Dorado Tarde",
     "resultado": "2859"
   },
@@ -41,8 +46,23 @@
   },
   {
     "fecha": "2026-09-01",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "6358"
+  },
+  {
+    "fecha": "2026-09-01",
+    "sorteo": "CRUZ ROJA",
+    "resultado": "7132"
+  },
+  {
+    "fecha": "2026-09-01",
     "sorteo": "Astro Sol",
     "resultado": "3227-SAGITARIO"
+  },
+  {
+    "fecha": "2026-09-01",
+    "sorteo": "Astro Luna",
+    "resultado": "8230-GEMINIS"
   },
   {
     "fecha": "2026-08-31",
