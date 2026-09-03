@@ -1,5 +1,20 @@
 [
   {
+    "fecha": "2026-09-03",
+    "sorteo": "META",
+    "resultado": "1719"
+  },
+  {
+    "fecha": "2026-09-03",
+    "sorteo": "MANIZALES",
+    "resultado": "8587"
+  },
+  {
+    "fecha": "2026-09-02",
+    "sorteo": "VALLE",
+    "resultado": "9164"
+  },
+  {
     "fecha": "2026-09-02",
     "sorteo": "Sinuano Día",
     "resultado": "3291"
@@ -41,8 +56,18 @@
   },
   {
     "fecha": "2026-09-02",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "7730"
+  },
+  {
+    "fecha": "2026-09-02",
     "sorteo": "Astro Sol",
     "resultado": "6757-CANCER"
+  },
+  {
+    "fecha": "2026-09-02",
+    "sorteo": "Astro Luna",
+    "resultado": "8231-VIRGO"
   },
   {
     "fecha": "2026-09-01",
