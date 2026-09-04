@@ -1,6 +1,21 @@
 [
   {
     "fecha": "2026-09-03",
+    "sorteo": "Sinuano Día",
+    "resultado": "1780"
+  },
+  {
+    "fecha": "2026-09-03",
+    "sorteo": "Paisita Noche",
+    "resultado": "9662"
+  },
+  {
+    "fecha": "2026-09-03",
+    "sorteo": "Paisita Día",
+    "resultado": "9439"
+  },
+  {
+    "fecha": "2026-09-03",
     "sorteo": "META",
     "resultado": "1719"
   },
@@ -8,6 +23,31 @@
     "fecha": "2026-09-03",
     "sorteo": "MANIZALES",
     "resultado": "8587"
+  },
+  {
+    "fecha": "2026-09-03",
+    "sorteo": "Dorado Tarde",
+    "resultado": "4859"
+  },
+  {
+    "fecha": "2026-09-03",
+    "sorteo": "Dorado Mañana",
+    "resultado": "0820"
+  },
+  {
+    "fecha": "2026-09-03",
+    "sorteo": "Chontico Noche",
+    "resultado": "3544"
+  },
+  {
+    "fecha": "2026-09-03",
+    "sorteo": "Chontico Día",
+    "resultado": "2909"
+  },
+  {
+    "fecha": "2026-09-03",
+    "sorteo": "Cafeterito Tarde",
+    "resultado": "1766"
   },
   {
     "fecha": "2026-09-02",
