@@ -27,23 +27,45 @@ REGLAS_LOTERIAS = [
     ("ASTRO SOL", "Astro Sol"),
     ("SUPER ASTRO LUNA", "Astro Luna"),
     ("ASTRO LUNA", "Astro Luna"),
+    ("LOTERIA DEL VALLE", "VALLE"),
+    ("LOTERIA VALLE", "VALLE"),
+    ("VALLE", "VALLE"),
+    ("LOTERIA DE MANIZALES", "MANIZALES"),
+    ("MANIZALES", "MANIZALES"),
+    ("LOTERIA DEL META", "META"),
+    ("META", "META"),
     ("TOLIMA", "TOLIMA"),
     ("BOGOTA", "BOGOTA"),
     ("BOGOTÁ", "BOGOTA"),
-    ("VALLE", "VALLE"),
     ("MEDELLIN", "MEDELLIN"),
     ("MEDELLÍN", "MEDELLIN"),
     ("HUILA", "HUILA"),
     ("RISARALDA", "RISARALDA"),
     ("CRUZ ROJA", "CRUZ ROJA"),
     ("CUNDINAMARCA", "CUNDINAMARCA"),
-    ("MANIZALES", "MANIZALES"),
-    ("META", "META"),
     ("SANTANDER", "SANTANDER"),
     ("CAUCA", "CAUCA"),
     ("BOYACA", "BOYACA"),
     ("BOYACÁ", "BOYACA"),
 ]
+
+# Días de la semana oficial de juego (0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo)
+DIAS_OFICIALES_LOTERIAS = {
+    "CUNDINAMARCA": [0],
+    "TOLIMA": [0],
+    "CRUZ ROJA": [1],
+    "HUILA": [1],
+    "MANIZALES": [2],
+    "META": [2],
+    "VALLE": [2],
+    "BOGOTA": [3],
+    "QUINDIO": [3],
+    "MEDELLIN": [4],
+    "RISARALDA": [4],
+    "SANTANDER": [4],
+    "BOYACA": [5],
+    "CAUCA": [5],
+}
 
 SIGNOS = [
     "ARIES",
@@ -138,6 +160,34 @@ def extraer_cifra_4(texto):
     return None
 
 
+def ajustar_fecha_segun_dia_oficial(sorteo, fecha_str):
+    """Garantiza que las loterías semanales no queden asignadas al día siguiente.
+
+    Si Manizales, Meta o Valle aparecen con fecha de Jueves, las reajusta al
+    Miércoles inmediatamente anterior.
+    """
+    if sorteo in DIAS_OFICIALES_LOTERIAS:
+        dias_permitidos = DIAS_OFICIALES_LOTERIAS[sorteo]
+        try:
+            dt = datetime.strptime(fecha_str, "%Y-%m-%d")
+            # Si el día de la semana capturado no coincide con su día de juego oficial:
+            if dt.weekday() not in dias_permitidos:
+                # Restar días hasta encontrar el último día oficial en que jugó
+                for i in range(1, 7):
+                    dt_prev = dt - timedelta(days=i)
+                    if dt_prev.weekday() in dias_permitidos:
+                        nueva_fecha = dt_prev.strftime("%Y-%m-%d")
+                        print(
+                            f"🔧 Reajuste de fecha oficial para {sorteo}:"
+                            f" {fecha_str} -> {nueva_fecha}"
+                        )
+                        return nueva_fecha
+        except Exception as e:
+            print(f"[REAJUSTE FECHA ERROR] {e}")
+
+    return fecha_str
+
+
 def extraer_resultados_chancehoy():
     resultados = []
     url = "https://www.chancehoy.com/"
@@ -164,6 +214,9 @@ def extraer_resultados_chancehoy():
                     continue
 
                 fecha_real = obtener_fecha_de_tarjeta(t, fecha_defecto_hoy)
+                # Validar la fecha según el día oficial de la lotería
+                fecha_real = ajustar_fecha_segun_dia_oficial(sorteo, fecha_real)
+
                 clave_procesada = f"{fecha_real}_{sorteo}"
                 if clave_procesada in sorteos_fecha_procesados:
                     continue
@@ -192,11 +245,6 @@ def extraer_resultados_chancehoy():
 
 
 def rescate_emergencia_ganarchance(resultados_actuales):
-    """BARRIDO DE EMERGENCIA EN GANARCHANCE.COM
-
-    Verifica qué loterías faltan por capturar y las extrae quirúrgicamente para
-    completar la lista.
-    """
     sorteos_ya_capturados = {r["sorteo"] for r in resultados_actuales}
     rescatados = []
 
@@ -209,9 +257,9 @@ def rescate_emergencia_ganarchance(resultados_actuales):
             soup = BeautifulSoup(res.text, "html.parser")
 
             txt_pagina = soup.get_text(" ", strip=True)
-            fecha_real = extraer_fecha_de_encabezado_texto(txt_pagina)
-            if not fecha_real:
-                fecha_real = obtener_hora_colombia().strftime("%Y-%m-%d")
+            fecha_real_pagina = extraer_fecha_de_encabezado_texto(txt_pagina)
+            if not fecha_real_pagina:
+                fecha_real_pagina = obtener_hora_colombia().strftime("%Y-%m-%d")
 
             items = soup.find_all("div", class_="flex-item")
             for item in items:
@@ -225,7 +273,6 @@ def rescate_emergencia_ganarchance(resultados_actuales):
                 if not sorteo_oficial:
                     continue
 
-                # Si ya fue capturado en chancehoy, lo saltamos
                 if sorteo_oficial in sorteos_ya_capturados:
                     continue
 
@@ -237,6 +284,10 @@ def rescate_emergencia_ganarchance(resultados_actuales):
                 cifra = extraer_cifra_4(txt_num)
 
                 if cifra:
+                    fecha_corregida = ajustar_fecha_segun_dia_oficial(
+                        sorteo_oficial, fecha_real_pagina
+                    )
+
                     if "Astro" in sorteo_oficial:
                         signo = extraer_signo(item.get_text(" ", strip=True))
                         if signo:
@@ -245,14 +296,14 @@ def rescate_emergencia_ganarchance(resultados_actuales):
                             continue
 
                     rescatados.append({
-                        "fecha": fecha_real,
+                        "fecha": fecha_corregida,
                         "sorteo": sorteo_oficial,
                         "resultado": cifra,
                     })
                     sorteos_ya_capturados.add(sorteo_oficial)
                     print(
-                        f"🚨 Extraído de Emergencia (ganarchance):"
-                        f" {sorteo_oficial} -> {cifra} ({fecha_real})"
+                        f"🚨 Rescatado de ganarchance: {sorteo_oficial} ->"
+                        f" {cifra} ({fecha_corregida})"
                     )
 
     except Exception as e:
@@ -261,11 +312,33 @@ def rescate_emergencia_ganarchance(resultados_actuales):
     return rescatados
 
 
+def sanitizar_y_corregir_historial(memoria_dict):
+    """Repara cualquier registro antiguo existente en memoria que tenga una fecha.
+
+    incompatible con su día oficial de juego (ejemplo: Manizales, Meta o Valle
+    en fecha 2026-09-03).
+    """
+    memoria_corregida = {}
+
+    for clave, item in memoria_dict.items():
+        sorteo = item.get("sorteo")
+        fecha = item.get("fecha")
+
+        if sorteo and fecha:
+            fecha_ajustada = ajustar_fecha_segun_dia_oficial(sorteo, fecha)
+            item["fecha"] = fecha_ajustada
+            nueva_clave = f"{fecha_ajustada}_{sorteo}"
+            memoria_corregida[nueva_clave] = item
+        else:
+            memoria_corregida[clave] = item
+
+    return memoria_corregida
+
+
 def actualizar_sorteos_json():
     archivo = "sorteos.json"
     memoria_dict = {}
 
-    # 1. Cargar historial existente preservando datos antiguos válidos
     if os.path.exists(archivo):
         try:
             with open(archivo, "r", encoding="utf-8") as f:
@@ -281,13 +354,16 @@ def actualizar_sorteos_json():
         except Exception as e:
             print(f"[MEMORIA JSON ERROR] {e}")
 
+    # 1. Sanitizar memoria previa para arreglar los registros desfasados del 03 de septiembre
+    memoria_dict = sanitizar_y_corregir_historial(memoria_dict)
+
     # 2. Extracción principal en chancehoy.com
     nuevos = extraer_resultados_chancehoy()
 
-    # 3. Rescate de emergencia en ganarchance.com para cualquier lotería faltante
+    # 3. Rescate de emergencia en ganarchance.com (extrae Valle si faltaba)
     rescatados = rescate_emergencia_ganarchance(nuevos)
 
-    # 4. Unificar todos los datos procesados
+    # 4. Unificar y guardar datos
     for item in nuevos + rescatados:
         clave = f"{item['fecha']}_{item['sorteo']}"
         memoria_dict[clave] = item
@@ -299,8 +375,8 @@ def actualizar_sorteos_json():
         json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
     print(
-        "✅ Extracción unificada finalizada con éxito. Total registros en"
-        f" sorteos.json: {len(lista_final)}"
+        "✅ Historial sanitizado y actualizado. Total en sorteos.json:"
+        f" {len(lista_final)}"
     )
 
 
