@@ -6,6 +6,16 @@
   },
   {
     "fecha": "2026-09-04",
+    "sorteo": "SANTANDER",
+    "resultado": "0856"
+  },
+  {
+    "fecha": "2026-09-04",
+    "sorteo": "RISARALDA",
+    "resultado": "2131"
+  },
+  {
+    "fecha": "2026-09-04",
     "sorteo": "Paisita Noche",
     "resultado": "0697"
   },
@@ -13,6 +23,11 @@
     "fecha": "2026-09-04",
     "sorteo": "Paisita Día",
     "resultado": "3726"
+  },
+  {
+    "fecha": "2026-09-04",
+    "sorteo": "MEDELLIN",
+    "resultado": "1132"
   },
   {
     "fecha": "2026-09-04",
@@ -41,8 +56,18 @@
   },
   {
     "fecha": "2026-09-04",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "5275"
+  },
+  {
+    "fecha": "2026-09-04",
     "sorteo": "Astro Sol",
     "resultado": "6090-SAGITARIO"
+  },
+  {
+    "fecha": "2026-09-04",
+    "sorteo": "Astro Luna",
+    "resultado": "6593-SAGITARIO"
   },
   {
     "fecha": "2026-09-03",
