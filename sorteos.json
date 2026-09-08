@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-09-07",
+    "sorteo": "TOLIMA",
+    "resultado": "2680"
+  },
+  {
+    "fecha": "2026-09-07",
     "sorteo": "Sinuano Día",
     "resultado": "3876"
   },
@@ -41,13 +46,23 @@
   },
   {
     "fecha": "2026-09-07",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "0043"
+  },
+  {
+    "fecha": "2026-09-07",
+    "sorteo": "CUNDINAMARCA",
+    "resultado": "4484"
+  },
+  {
+    "fecha": "2026-09-07",
     "sorteo": "Astro Sol",
     "resultado": "7157-SAGITARIO"
   },
   {
     "fecha": "2026-09-07",
     "sorteo": "Astro Luna",
-    "resultado": "1507-LIBRA"
+    "resultado": "9080-PISCIS"
   },
   {
     "fecha": "2026-09-06",
