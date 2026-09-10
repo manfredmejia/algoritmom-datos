@@ -11,7 +11,8 @@ def obtener_hora_colombia():
     return datetime.utcnow() - timedelta(hours=5)
 
 
-# Catálogo oficial de loterías y chances de ALGORITMOM
+AÑO_ACTUAL = str(obtener_hora_colombia().year)
+
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
     ("CHONTICO NOCHE", "Chontico Noche"),
@@ -49,7 +50,6 @@ REGLAS_LOTERIAS = [
     ("BOYACÁ", "BOYACA"),
 ]
 
-# Días de la semana oficial de juego (0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo)
 DIAS_OFICIALES_LOTERIAS = {
     "CUNDINAMARCA": [0],
     "TOLIMA": [0],
@@ -151,37 +151,37 @@ def identificar_sorteo(texto):
 
 
 def extraer_cifra_4(texto):
+    """Extrae 4 dígitos asegurando descartar explícitamente el año actual (2026)."""
+    # 1. Buscar bloques exactos de 4 dígitos descartando el año actual
     bloques = re.findall(r"\b\d{4}\b", texto)
-    if bloques:
-        return bloques[0]
+    bloques_validos = [b for b in bloques if b != AÑO_ACTUAL]
+    if bloques_validos:
+        return bloques_validos[0]
+
+    # 2. Si vienen separados por tags, capturar dígitos ignorando secuencias que formen el año actual
     digitos = re.findall(r"\d", texto)
     if len(digitos) >= 4:
-        return "".join(digitos[:4])
+        cifra_unida = "".join(digitos[:4])
+        if cifra_unida != AÑO_ACTUAL:
+            return cifra_unida
+        elif len(digitos) >= 8:
+            cifra_secundaria = "".join(digitos[4:8])
+            if cifra_secundaria != AÑO_ACTUAL:
+                return cifra_secundaria
+
     return None
 
 
 def ajustar_fecha_segun_dia_oficial(sorteo, fecha_str):
-    """Garantiza que las loterías semanales no queden asignadas al día siguiente.
-
-    Si Manizales, Meta o Valle aparecen con fecha de Jueves, las reajusta al
-    Miércoles inmediatamente anterior.
-    """
     if sorteo in DIAS_OFICIALES_LOTERIAS:
         dias_permitidos = DIAS_OFICIALES_LOTERIAS[sorteo]
         try:
             dt = datetime.strptime(fecha_str, "%Y-%m-%d")
-            # Si el día de la semana capturado no coincide con su día de juego oficial:
             if dt.weekday() not in dias_permitidos:
-                # Restar días hasta encontrar el último día oficial en que jugó
                 for i in range(1, 7):
                     dt_prev = dt - timedelta(days=i)
                     if dt_prev.weekday() in dias_permitidos:
-                        nueva_fecha = dt_prev.strftime("%Y-%m-%d")
-                        print(
-                            f"🔧 Reajuste de fecha oficial para {sorteo}:"
-                            f" {fecha_str} -> {nueva_fecha}"
-                        )
-                        return nueva_fecha
+                        return dt_prev.strftime("%Y-%m-%d")
         except Exception as e:
             print(f"[REAJUSTE FECHA ERROR] {e}")
 
@@ -214,7 +214,6 @@ def extraer_resultados_chancehoy():
                     continue
 
                 fecha_real = obtener_fecha_de_tarjeta(t, fecha_defecto_hoy)
-                # Validar la fecha según el día oficial de la lotería
                 fecha_real = ajustar_fecha_segun_dia_oficial(sorteo, fecha_real)
 
                 clave_procesada = f"{fecha_real}_{sorteo}"
@@ -224,7 +223,7 @@ def extraer_resultados_chancehoy():
                 txt_tarjeta = t.get_text(" ", strip=True)
                 cifra_4 = extraer_cifra_4(txt_tarjeta)
 
-                if cifra_4:
+                if cifra_4 and cifra_4 != AÑO_ACTUAL:
                     if "Astro" in sorteo:
                         signo = extraer_signo(txt_tarjeta)
                         if signo:
@@ -270,10 +269,7 @@ def rescate_emergencia_ganarchance(resultados_actuales):
                 nombre_txt = elem_nombre.get_text(" ", strip=True)
                 sorteo_oficial = identificar_sorteo(nombre_txt)
 
-                if not sorteo_oficial:
-                    continue
-
-                if sorteo_oficial in sorteos_ya_capturados:
+                if not sorteo_oficial or sorteo_oficial in sorteos_ya_capturados:
                     continue
 
                 elem_numero = item.find("div", class_="numero")
@@ -283,7 +279,7 @@ def rescate_emergencia_ganarchance(resultados_actuales):
                 txt_num = elem_numero.get_text(" ", strip=True)
                 cifra = extraer_cifra_4(txt_num)
 
-                if cifra:
+                if cifra and cifra != AÑO_ACTUAL:
                     fecha_corregida = ajustar_fecha_segun_dia_oficial(
                         sorteo_oficial, fecha_real_pagina
                     )
@@ -301,10 +297,6 @@ def rescate_emergencia_ganarchance(resultados_actuales):
                         "resultado": cifra,
                     })
                     sorteos_ya_capturados.add(sorteo_oficial)
-                    print(
-                        f"🚨 Rescatado de ganarchance: {sorteo_oficial} ->"
-                        f" {cifra} ({fecha_corregida})"
-                    )
 
     except Exception as e:
         print(f"[RESCATE GANARCHANCE ERROR] {e}")
@@ -312,27 +304,26 @@ def rescate_emergencia_ganarchance(resultados_actuales):
     return rescatados
 
 
-def sanitizar_y_corregir_historial(memoria_dict):
-    """Repara cualquier registro antiguo existente en memoria que tenga una fecha.
+def sanitizar_y_limpiar_errados(memoria_dict):
+    """PULGADO AUTOMÁTICO DE RESULTADOS '2026'.
 
-    incompatible con su día oficial de juego (ejemplo: Manizales, Meta o Valle
-    en fecha 2026-09-03).
+    Elimina de la memoria cualquier entrada donde el resultado sea '2026' o
+    empiece por '2026-'.
     """
-    memoria_corregida = {}
+    memoria_limpia = {}
 
     for clave, item in memoria_dict.items():
-        sorteo = item.get("sorteo")
-        fecha = item.get("fecha")
+        res = str(item.get("resultado", ""))
+        # Si el resultado es "2026" o "2026-SIGNO", se descarta la entrada errónea
+        if res == AÑO_ACTUAL or res.startswith(f"{AÑO_ACTUAL}-"):
+            print(
+                f"🗑️ Purgando registro corrupto: {item.get('sorteo')} -"
+                f" {item.get('fecha')} -> {res}"
+            )
+            continue
+        memoria_limpia[clave] = item
 
-        if sorteo and fecha:
-            fecha_ajustada = ajustar_fecha_segun_dia_oficial(sorteo, fecha)
-            item["fecha"] = fecha_ajustada
-            nueva_clave = f"{fecha_ajustada}_{sorteo}"
-            memoria_corregida[nueva_clave] = item
-        else:
-            memoria_corregida[clave] = item
-
-    return memoria_corregida
+    return memoria_limpia
 
 
 def actualizar_sorteos_json():
@@ -354,16 +345,14 @@ def actualizar_sorteos_json():
         except Exception as e:
             print(f"[MEMORIA JSON ERROR] {e}")
 
-    # 1. Sanitizar memoria previa para arreglar los registros desfasados del 03 de septiembre
-    memoria_dict = sanitizar_y_corregir_historial(memoria_dict)
+    # 1. Purgar inmediatamente cualquier dato erróneo de "2026"
+    memoria_dict = sanitizar_y_limpiar_errados(memoria_dict)
 
-    # 2. Extracción principal en chancehoy.com
+    # 2. Re-extraer desde fuentes web los números reales
     nuevos = extraer_resultados_chancehoy()
-
-    # 3. Rescate de emergencia en ganarchance.com (extrae Valle si faltaba)
     rescatados = rescate_emergencia_ganarchance(nuevos)
 
-    # 4. Unificar y guardar datos
+    # 3. Guardar solo datos válidos
     for item in nuevos + rescatados:
         clave = f"{item['fecha']}_{item['sorteo']}"
         memoria_dict[clave] = item
@@ -375,8 +364,8 @@ def actualizar_sorteos_json():
         json.dump(lista_final, f, ensure_ascii=False, indent=2)
 
     print(
-        "✅ Historial sanitizado y actualizado. Total en sorteos.json:"
-        f" {len(lista_final)}"
+        "✅ Limpieza y actualización completadas. Total registros en"
+        f" sorteos.json: {len(lista_final)}"
     )
 
 
