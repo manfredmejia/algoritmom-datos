@@ -1,8 +1,73 @@
 [
   {
     "fecha": "2026-09-09",
+    "sorteo": "VALLE",
+    "resultado": "2026"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "Sinuano Día",
+    "resultado": "2026"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "Paisita Noche",
+    "resultado": "2026"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "Paisita Día",
+    "resultado": "2026"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "META",
+    "resultado": "3797"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "MANIZALES",
+    "resultado": "4628"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "Dorado Tarde",
+    "resultado": "2026"
+  },
+  {
+    "fecha": "2026-09-09",
     "sorteo": "Dorado Mañana",
-    "resultado": "8989"
+    "resultado": "2026"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "Chontico Noche",
+    "resultado": "2026"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "Chontico Día",
+    "resultado": "2026"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "Cafeterito Tarde",
+    "resultado": "2026"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "2026"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "Astro Sol",
+    "resultado": "2026-VIRGO"
+  },
+  {
+    "fecha": "2026-09-09",
+    "sorteo": "Astro Luna",
+    "resultado": "2026-PISCIS"
   },
   {
     "fecha": "2026-09-08",
