@@ -41,8 +41,23 @@
   },
   {
     "fecha": "2026-09-10",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "4233"
+  },
+  {
+    "fecha": "2026-09-10",
+    "sorteo": "BOGOTA",
+    "resultado": "3334"
+  },
+  {
+    "fecha": "2026-09-10",
     "sorteo": "Astro Sol",
     "resultado": "6395-ACUARIO"
+  },
+  {
+    "fecha": "2026-09-10",
+    "sorteo": "Astro Luna",
+    "resultado": "8387-ACUARIO"
   },
   {
     "fecha": "2026-09-09",
