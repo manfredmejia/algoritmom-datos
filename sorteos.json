@@ -36,8 +36,28 @@
   },
   {
     "fecha": "2026-09-12",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "1720"
+  },
+  {
+    "fecha": "2026-09-12",
+    "sorteo": "CAUCA",
+    "resultado": "9666"
+  },
+  {
+    "fecha": "2026-09-12",
+    "sorteo": "BOYACA",
+    "resultado": "2984"
+  },
+  {
+    "fecha": "2026-09-12",
     "sorteo": "Astro Sol",
     "resultado": "8629-LIBRA"
+  },
+  {
+    "fecha": "2026-09-12",
+    "sorteo": "Astro Luna",
+    "resultado": "2820-GEMINIS"
   },
   {
     "fecha": "2026-09-11",
