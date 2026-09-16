@@ -16,6 +16,11 @@
   },
   {
     "fecha": "2026-09-15",
+    "sorteo": "HUILA",
+    "resultado": "4614"
+  },
+  {
+    "fecha": "2026-09-15",
     "sorteo": "Dorado Tarde",
     "resultado": "7242"
   },
@@ -41,8 +46,23 @@
   },
   {
     "fecha": "2026-09-15",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "9636"
+  },
+  {
+    "fecha": "2026-09-15",
+    "sorteo": "CRUZ ROJA",
+    "resultado": "0016"
+  },
+  {
+    "fecha": "2026-09-15",
     "sorteo": "Astro Sol",
     "resultado": "3567-ARIES"
+  },
+  {
+    "fecha": "2026-09-15",
+    "sorteo": "Astro Luna",
+    "resultado": "4698-SAGITARIO"
   },
   {
     "fecha": "2026-09-14",
