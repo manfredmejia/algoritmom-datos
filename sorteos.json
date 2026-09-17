@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-09-16",
+    "sorteo": "VALLE",
+    "resultado": "0188"
+  },
+  {
+    "fecha": "2026-09-16",
     "sorteo": "Sinuano Día",
     "resultado": "0544"
   },
@@ -13,6 +18,16 @@
     "fecha": "2026-09-16",
     "sorteo": "Paisita Día",
     "resultado": "5868"
+  },
+  {
+    "fecha": "2026-09-16",
+    "sorteo": "META",
+    "resultado": "1268"
+  },
+  {
+    "fecha": "2026-09-16",
+    "sorteo": "MANIZALES",
+    "resultado": "0018"
   },
   {
     "fecha": "2026-09-16",
@@ -41,8 +56,18 @@
   },
   {
     "fecha": "2026-09-16",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "8828"
+  },
+  {
+    "fecha": "2026-09-16",
     "sorteo": "Astro Sol",
     "resultado": "1205-TAURO"
+  },
+  {
+    "fecha": "2026-09-16",
+    "sorteo": "Astro Luna",
+    "resultado": "1889-CAPRICORNIO"
   },
   {
     "fecha": "2026-09-15",
