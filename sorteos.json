@@ -36,8 +36,28 @@
   },
   {
     "fecha": "2026-09-19",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "5288"
+  },
+  {
+    "fecha": "2026-09-19",
+    "sorteo": "CAUCA",
+    "resultado": "3409"
+  },
+  {
+    "fecha": "2026-09-19",
+    "sorteo": "BOYACA",
+    "resultado": "8004"
+  },
+  {
+    "fecha": "2026-09-19",
     "sorteo": "Astro Sol",
     "resultado": "8874-CANCER"
+  },
+  {
+    "fecha": "2026-09-19",
+    "sorteo": "Astro Luna",
+    "resultado": "5402-CAPRICORNIO"
   },
   {
     "fecha": "2026-09-18",
