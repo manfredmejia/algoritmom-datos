@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-09-21",
+    "sorteo": "TOLIMA",
+    "resultado": "4008"
+  },
+  {
+    "fecha": "2026-09-21",
     "sorteo": "Sinuano Día",
     "resultado": "9410"
   },
@@ -41,8 +46,23 @@
   },
   {
     "fecha": "2026-09-21",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "3883"
+  },
+  {
+    "fecha": "2026-09-21",
+    "sorteo": "CUNDINAMARCA",
+    "resultado": "5341"
+  },
+  {
+    "fecha": "2026-09-21",
     "sorteo": "Astro Sol",
     "resultado": "4762-SAGITARIO"
+  },
+  {
+    "fecha": "2026-09-21",
+    "sorteo": "Astro Luna",
+    "resultado": "9372-VIRGO"
   },
   {
     "fecha": "2026-09-20",
