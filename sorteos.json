@@ -1,8 +1,48 @@
 [
   {
     "fecha": "2026-09-23",
+    "sorteo": "Sinuano Día",
+    "resultado": "5273"
+  },
+  {
+    "fecha": "2026-09-23",
+    "sorteo": "Paisita Noche",
+    "resultado": "0189"
+  },
+  {
+    "fecha": "2026-09-23",
+    "sorteo": "Paisita Día",
+    "resultado": "8520"
+  },
+  {
+    "fecha": "2026-09-23",
+    "sorteo": "Dorado Tarde",
+    "resultado": "8935"
+  },
+  {
+    "fecha": "2026-09-23",
     "sorteo": "Dorado Mañana",
-    "resultado": "1688"
+    "resultado": "3428"
+  },
+  {
+    "fecha": "2026-09-23",
+    "sorteo": "Chontico Noche",
+    "resultado": "4514"
+  },
+  {
+    "fecha": "2026-09-23",
+    "sorteo": "Chontico Día",
+    "resultado": "3039"
+  },
+  {
+    "fecha": "2026-09-23",
+    "sorteo": "Cafeterito Tarde",
+    "resultado": "2495"
+  },
+  {
+    "fecha": "2026-09-23",
+    "sorteo": "Astro Sol",
+    "resultado": "8311-CAPRICORNIO"
   },
   {
     "fecha": "2026-09-22",
@@ -51,6 +91,11 @@
   },
   {
     "fecha": "2026-09-22",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "6859"
+  },
+  {
+    "fecha": "2026-09-22",
     "sorteo": "CRUZ ROJA",
     "resultado": "3981"
   },
@@ -58,6 +103,11 @@
     "fecha": "2026-09-22",
     "sorteo": "Astro Sol",
     "resultado": "5172-ARIES"
+  },
+  {
+    "fecha": "2026-09-22",
+    "sorteo": "Astro Luna",
+    "resultado": "6435-LIBRA"
   },
   {
     "fecha": "2026-09-21",
