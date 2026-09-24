@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-09-23",
+    "sorteo": "VALLE",
+    "resultado": "4356"
+  },
+  {
+    "fecha": "2026-09-23",
     "sorteo": "Sinuano Día",
     "resultado": "5273"
   },
@@ -13,6 +18,16 @@
     "fecha": "2026-09-23",
     "sorteo": "Paisita Día",
     "resultado": "8520"
+  },
+  {
+    "fecha": "2026-09-23",
+    "sorteo": "META",
+    "resultado": "2962"
+  },
+  {
+    "fecha": "2026-09-23",
+    "sorteo": "MANIZALES",
+    "resultado": "1933"
   },
   {
     "fecha": "2026-09-23",
@@ -41,8 +56,18 @@
   },
   {
     "fecha": "2026-09-23",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "8383"
+  },
+  {
+    "fecha": "2026-09-23",
     "sorteo": "Astro Sol",
     "resultado": "8311-CAPRICORNIO"
+  },
+  {
+    "fecha": "2026-09-23",
+    "sorteo": "Astro Luna",
+    "resultado": "0274-LIBRA"
   },
   {
     "fecha": "2026-09-22",
