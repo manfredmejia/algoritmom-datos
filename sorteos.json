@@ -1,5 +1,10 @@
 [
   {
+    "fecha": "2026-09-25",
+    "sorteo": "Dorado Mañana",
+    "resultado": "4018"
+  },
+  {
     "fecha": "2026-09-24",
     "sorteo": "Sinuano Día",
     "resultado": "1929"
@@ -38,6 +43,11 @@
     "fecha": "2026-09-24",
     "sorteo": "Cafeterito Tarde",
     "resultado": "7503"
+  },
+  {
+    "fecha": "2026-09-24",
+    "sorteo": "BOGOTA",
+    "resultado": "9744"
   },
   {
     "fecha": "2026-09-23",
