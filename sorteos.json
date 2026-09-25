@@ -1,8 +1,43 @@
 [
   {
     "fecha": "2026-09-25",
+    "sorteo": "Sinuano Día",
+    "resultado": "4038"
+  },
+  {
+    "fecha": "2026-09-25",
+    "sorteo": "Paisita Noche",
+    "resultado": "8467"
+  },
+  {
+    "fecha": "2026-09-25",
+    "sorteo": "Paisita Día",
+    "resultado": "8087"
+  },
+  {
+    "fecha": "2026-09-25",
+    "sorteo": "Dorado Tarde",
+    "resultado": "4015"
+  },
+  {
+    "fecha": "2026-09-25",
     "sorteo": "Dorado Mañana",
-    "resultado": "4018"
+    "resultado": "2630"
+  },
+  {
+    "fecha": "2026-09-25",
+    "sorteo": "Chontico Día",
+    "resultado": "8437"
+  },
+  {
+    "fecha": "2026-09-25",
+    "sorteo": "Cafeterito Tarde",
+    "resultado": "8549"
+  },
+  {
+    "fecha": "2026-09-25",
+    "sorteo": "Astro Sol",
+    "resultado": "2510-SAGITARIO"
   },
   {
     "fecha": "2026-09-24",
@@ -46,8 +81,18 @@
   },
   {
     "fecha": "2026-09-24",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "3072"
+  },
+  {
+    "fecha": "2026-09-24",
     "sorteo": "BOGOTA",
     "resultado": "9744"
+  },
+  {
+    "fecha": "2026-09-24",
+    "sorteo": "Astro Luna",
+    "resultado": "8006-CAPRICORNIO"
   },
   {
     "fecha": "2026-09-23",
