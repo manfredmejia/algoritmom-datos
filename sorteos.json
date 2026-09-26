@@ -6,6 +6,16 @@
   },
   {
     "fecha": "2026-09-25",
+    "sorteo": "SANTANDER",
+    "resultado": "0151"
+  },
+  {
+    "fecha": "2026-09-25",
+    "sorteo": "RISARALDA",
+    "resultado": "6731"
+  },
+  {
+    "fecha": "2026-09-25",
     "sorteo": "Paisita Noche",
     "resultado": "8467"
   },
@@ -13,6 +23,11 @@
     "fecha": "2026-09-25",
     "sorteo": "Paisita Día",
     "resultado": "8087"
+  },
+  {
+    "fecha": "2026-09-25",
+    "sorteo": "MEDELLIN",
+    "resultado": "1620"
   },
   {
     "fecha": "2026-09-25",
@@ -38,6 +53,11 @@
     "fecha": "2026-09-25",
     "sorteo": "Cafeterito Tarde",
     "resultado": "8549"
+  },
+  {
+    "fecha": "2026-09-25",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "2239"
   },
   {
     "fecha": "2026-09-25",
