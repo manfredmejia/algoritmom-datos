@@ -26,6 +26,11 @@
   },
   {
     "fecha": "2026-09-26",
+    "sorteo": "Chontico Noche",
+    "resultado": "9807"
+  },
+  {
+    "fecha": "2026-09-26",
     "sorteo": "Chontico Día",
     "resultado": "8451"
   },
@@ -36,8 +41,28 @@
   },
   {
     "fecha": "2026-09-26",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "6556"
+  },
+  {
+    "fecha": "2026-09-26",
+    "sorteo": "CAUCA",
+    "resultado": "7567"
+  },
+  {
+    "fecha": "2026-09-26",
+    "sorteo": "BOYACA",
+    "resultado": "9882"
+  },
+  {
+    "fecha": "2026-09-26",
     "sorteo": "Astro Sol",
     "resultado": "6987-SAGITARIO"
+  },
+  {
+    "fecha": "2026-09-26",
+    "sorteo": "Astro Luna",
+    "resultado": "2984-TAURO"
   },
   {
     "fecha": "2026-09-25",
