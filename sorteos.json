@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-09-28",
+    "sorteo": "TOLIMA",
+    "resultado": "6718"
+  },
+  {
+    "fecha": "2026-09-28",
     "sorteo": "Sinuano Día",
     "resultado": "3662"
   },
@@ -46,8 +51,18 @@
   },
   {
     "fecha": "2026-09-28",
+    "sorteo": "CUNDINAMARCA",
+    "resultado": "2463"
+  },
+  {
+    "fecha": "2026-09-28",
     "sorteo": "Astro Sol",
     "resultado": "9009-TAURO"
+  },
+  {
+    "fecha": "2026-09-28",
+    "sorteo": "Astro Luna",
+    "resultado": "4444-VIRGO"
   },
   {
     "fecha": "2026-09-27",
