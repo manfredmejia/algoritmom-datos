@@ -16,6 +16,11 @@
   },
   {
     "fecha": "2026-09-29",
+    "sorteo": "HUILA",
+    "resultado": "9090"
+  },
+  {
+    "fecha": "2026-09-29",
     "sorteo": "Dorado Tarde",
     "resultado": "6548"
   },
@@ -41,8 +46,23 @@
   },
   {
     "fecha": "2026-09-29",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "1519"
+  },
+  {
+    "fecha": "2026-09-29",
+    "sorteo": "CRUZ ROJA",
+    "resultado": "5698"
+  },
+  {
+    "fecha": "2026-09-29",
     "sorteo": "Astro Sol",
     "resultado": "8148-VIRGO"
+  },
+  {
+    "fecha": "2026-09-29",
+    "sorteo": "Astro Luna",
+    "resultado": "7738-VIRGO"
   },
   {
     "fecha": "2026-09-28",
