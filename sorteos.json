@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-09-30",
+    "sorteo": "VALLE",
+    "resultado": "2012"
+  },
+  {
+    "fecha": "2026-09-30",
     "sorteo": "Sinuano Día",
     "resultado": "0883"
   },
@@ -13,6 +18,16 @@
     "fecha": "2026-09-30",
     "sorteo": "Paisita Día",
     "resultado": "7364"
+  },
+  {
+    "fecha": "2026-09-30",
+    "sorteo": "META",
+    "resultado": "7367"
+  },
+  {
+    "fecha": "2026-09-30",
+    "sorteo": "MANIZALES",
+    "resultado": "6602"
   },
   {
     "fecha": "2026-09-30",
@@ -38,6 +53,11 @@
     "fecha": "2026-09-30",
     "sorteo": "Cafeterito Tarde",
     "resultado": "9149"
+  },
+  {
+    "fecha": "2026-09-30",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "1454"
   },
   {
     "fecha": "2026-09-30",
