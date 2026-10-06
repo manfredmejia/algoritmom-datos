@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-10-05",
+    "sorteo": "TOLIMA",
+    "resultado": "6241"
+  },
+  {
+    "fecha": "2026-10-05",
     "sorteo": "Sinuano Día",
     "resultado": "8586"
   },
@@ -46,8 +51,18 @@
   },
   {
     "fecha": "2026-10-05",
+    "sorteo": "CUNDINAMARCA",
+    "resultado": "9503"
+  },
+  {
+    "fecha": "2026-10-05",
     "sorteo": "Astro Sol",
     "resultado": "4951-CANCER"
+  },
+  {
+    "fecha": "2026-10-05",
+    "sorteo": "Astro Luna",
+    "resultado": "3246-CAPRICORNIO"
   },
   {
     "fecha": "2026-10-04",
