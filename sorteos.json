@@ -6,6 +6,16 @@
   },
   {
     "fecha": "2026-10-09",
+    "sorteo": "SANTANDER",
+    "resultado": "3794"
+  },
+  {
+    "fecha": "2026-10-09",
+    "sorteo": "RISARALDA",
+    "resultado": "7531"
+  },
+  {
+    "fecha": "2026-10-09",
     "sorteo": "Paisita Noche",
     "resultado": "4342"
   },
@@ -13,6 +23,11 @@
     "fecha": "2026-10-09",
     "sorteo": "Paisita Día",
     "resultado": "8988"
+  },
+  {
+    "fecha": "2026-10-09",
+    "sorteo": "MEDELLIN",
+    "resultado": "0169"
   },
   {
     "fecha": "2026-10-09",
@@ -38,6 +53,16 @@
     "fecha": "2026-10-09",
     "sorteo": "Cafeterito Tarde",
     "resultado": "9014"
+  },
+  {
+    "fecha": "2026-10-09",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "1617"
+  },
+  {
+    "fecha": "2026-10-09",
+    "sorteo": "Astro Luna",
+    "resultado": "4611-CAPRICORNIO"
   },
   {
     "fecha": "2026-10-08",
