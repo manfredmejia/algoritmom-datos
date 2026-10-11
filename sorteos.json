@@ -6,8 +6,18 @@
   },
   {
     "fecha": "2026-10-10",
+    "sorteo": "Paisita Noche",
+    "resultado": "4221"
+  },
+  {
+    "fecha": "2026-10-10",
     "sorteo": "Paisita Día",
     "resultado": "2130"
+  },
+  {
+    "fecha": "2026-10-10",
+    "sorteo": "Dorado Tarde",
+    "resultado": "7102"
   },
   {
     "fecha": "2026-10-10",
@@ -23,6 +33,11 @@
     "fecha": "2026-10-10",
     "sorteo": "Cafeterito Tarde",
     "resultado": "8181"
+  },
+  {
+    "fecha": "2026-10-10",
+    "sorteo": "Astro Sol",
+    "resultado": "9183-ACUARIO"
   },
   {
     "fecha": "2026-10-09",
