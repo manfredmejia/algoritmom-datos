@@ -16,6 +16,11 @@
   },
   {
     "fecha": "2026-10-13",
+    "sorteo": "HUILA",
+    "resultado": "0338"
+  },
+  {
+    "fecha": "2026-10-13",
     "sorteo": "Dorado Tarde",
     "resultado": "0862"
   },
@@ -41,8 +46,28 @@
   },
   {
     "fecha": "2026-10-13",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "9784"
+  },
+  {
+    "fecha": "2026-10-13",
+    "sorteo": "CRUZ ROJA",
+    "resultado": "7623"
+  },
+  {
+    "fecha": "2026-10-13",
     "sorteo": "Astro Sol",
     "resultado": "8332-CAPRICORNIO"
+  },
+  {
+    "fecha": "2026-10-13",
+    "sorteo": "Astro Luna",
+    "resultado": "3879-CAPRICORNIO"
+  },
+  {
+    "fecha": "2026-10-12",
+    "sorteo": "TOLIMA",
+    "resultado": "3256"
   },
   {
     "fecha": "2026-10-12",
@@ -73,6 +98,11 @@
     "fecha": "2026-10-12",
     "sorteo": "Cafeterito Noche",
     "resultado": "9181"
+  },
+  {
+    "fecha": "2026-10-12",
+    "sorteo": "CUNDINAMARCA",
+    "resultado": "5793"
   },
   {
     "fecha": "2026-10-12",
