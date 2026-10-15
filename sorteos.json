@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-10-14",
+    "sorteo": "VALLE",
+    "resultado": "5091"
+  },
+  {
+    "fecha": "2026-10-14",
     "sorteo": "Sinuano Día",
     "resultado": "4370"
   },
@@ -13,6 +18,16 @@
     "fecha": "2026-10-14",
     "sorteo": "Paisita Día",
     "resultado": "6589"
+  },
+  {
+    "fecha": "2026-10-14",
+    "sorteo": "META",
+    "resultado": "3415"
+  },
+  {
+    "fecha": "2026-10-14",
+    "sorteo": "MANIZALES",
+    "resultado": "2024"
   },
   {
     "fecha": "2026-10-14",
@@ -48,6 +63,11 @@
     "fecha": "2026-10-14",
     "sorteo": "Astro Sol",
     "resultado": "7763-ARIES"
+  },
+  {
+    "fecha": "2026-10-14",
+    "sorteo": "Astro Luna",
+    "resultado": "1315-ACUARIO"
   },
   {
     "fecha": "2026-10-13",
