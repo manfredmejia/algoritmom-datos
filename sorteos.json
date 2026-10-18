@@ -36,8 +36,28 @@
   },
   {
     "fecha": "2026-10-17",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "6471"
+  },
+  {
+    "fecha": "2026-10-17",
+    "sorteo": "CAUCA",
+    "resultado": "0869"
+  },
+  {
+    "fecha": "2026-10-17",
+    "sorteo": "BOYACA",
+    "resultado": "5480"
+  },
+  {
+    "fecha": "2026-10-17",
     "sorteo": "Astro Sol",
     "resultado": "5278-TAURO"
+  },
+  {
+    "fecha": "2026-10-17",
+    "sorteo": "Astro Luna",
+    "resultado": "6406-LEO"
   },
   {
     "fecha": "2026-10-16",
