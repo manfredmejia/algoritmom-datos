@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-10-19",
+    "sorteo": "TOLIMA",
+    "resultado": "2891"
+  },
+  {
+    "fecha": "2026-10-19",
     "sorteo": "Sinuano Día",
     "resultado": "0056"
   },
@@ -41,8 +46,23 @@
   },
   {
     "fecha": "2026-10-19",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "7777"
+  },
+  {
+    "fecha": "2026-10-19",
+    "sorteo": "CUNDINAMARCA",
+    "resultado": "0901"
+  },
+  {
+    "fecha": "2026-10-19",
     "sorteo": "Astro Sol",
     "resultado": "8068-ACUARIO"
+  },
+  {
+    "fecha": "2026-10-19",
+    "sorteo": "Astro Luna",
+    "resultado": "1168-VIRGO"
   },
   {
     "fecha": "2026-10-18",
