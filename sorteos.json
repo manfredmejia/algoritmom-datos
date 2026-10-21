@@ -16,6 +16,11 @@
   },
   {
     "fecha": "2026-10-20",
+    "sorteo": "HUILA",
+    "resultado": "8852"
+  },
+  {
+    "fecha": "2026-10-20",
     "sorteo": "Dorado Tarde",
     "resultado": "1618"
   },
@@ -41,8 +46,23 @@
   },
   {
     "fecha": "2026-10-20",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "7701"
+  },
+  {
+    "fecha": "2026-10-20",
+    "sorteo": "CRUZ ROJA",
+    "resultado": "8572"
+  },
+  {
+    "fecha": "2026-10-20",
     "sorteo": "Astro Sol",
     "resultado": "2209-ACUARIO"
+  },
+  {
+    "fecha": "2026-10-20",
+    "sorteo": "Astro Luna",
+    "resultado": "7534-LEO"
   },
   {
     "fecha": "2026-10-19",
