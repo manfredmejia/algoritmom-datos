@@ -1,13 +1,33 @@
 [
   {
     "fecha": "2026-10-21",
+    "sorteo": "Sinuano Día",
+    "resultado": "4625"
+  },
+  {
+    "fecha": "2026-10-21",
+    "sorteo": "Paisita Noche",
+    "resultado": "6877"
+  },
+  {
+    "fecha": "2026-10-21",
     "sorteo": "Paisita Día",
     "resultado": "6234"
   },
   {
     "fecha": "2026-10-21",
+    "sorteo": "Dorado Tarde",
+    "resultado": "2731"
+  },
+  {
+    "fecha": "2026-10-21",
     "sorteo": "Dorado Mañana",
     "resultado": "9316"
+  },
+  {
+    "fecha": "2026-10-21",
+    "sorteo": "Chontico Noche",
+    "resultado": "2676"
   },
   {
     "fecha": "2026-10-21",
@@ -18,6 +38,11 @@
     "fecha": "2026-10-21",
     "sorteo": "Cafeterito Tarde",
     "resultado": "9880"
+  },
+  {
+    "fecha": "2026-10-21",
+    "sorteo": "Astro Sol",
+    "resultado": "9488-TAURO"
   },
   {
     "fecha": "2026-10-20",
