@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-10-21",
+    "sorteo": "VALLE",
+    "resultado": "8084"
+  },
+  {
+    "fecha": "2026-10-21",
     "sorteo": "Sinuano Día",
     "resultado": "4625"
   },
@@ -13,6 +18,16 @@
     "fecha": "2026-10-21",
     "sorteo": "Paisita Día",
     "resultado": "6234"
+  },
+  {
+    "fecha": "2026-10-21",
+    "sorteo": "META",
+    "resultado": "1847"
+  },
+  {
+    "fecha": "2026-10-21",
+    "sorteo": "MANIZALES",
+    "resultado": "2624"
   },
   {
     "fecha": "2026-10-21",
@@ -41,8 +56,18 @@
   },
   {
     "fecha": "2026-10-21",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "8206"
+  },
+  {
+    "fecha": "2026-10-21",
     "sorteo": "Astro Sol",
     "resultado": "9488-TAURO"
+  },
+  {
+    "fecha": "2026-10-21",
+    "sorteo": "Astro Luna",
+    "resultado": "0808-CANCER"
   },
   {
     "fecha": "2026-10-20",
