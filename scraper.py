@@ -38,6 +38,8 @@ REGLAS_LOTERIAS = [
     ("TOLIMA", "TOLIMA"),
     ("BOGOTA", "BOGOTA"),
     ("BOGOTÁ", "BOGOTA"),
+    ("LOTERIA DE QUINDIO", "QUINDIO"),
+    ("QUINDÍO", "QUINDIO"),
     ("MEDELLIN", "MEDELLIN"),
     ("MEDELLÍN", "MEDELLIN"),
     ("HUILA", "HUILA"),
