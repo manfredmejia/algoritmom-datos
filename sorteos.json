@@ -6,6 +6,11 @@
   },
   {
     "fecha": "2026-10-22",
+    "sorteo": "Paisita Noche",
+    "resultado": "7660"
+  },
+  {
+    "fecha": "2026-10-22",
     "sorteo": "Paisita Día",
     "resultado": "6041"
   },
@@ -21,6 +26,11 @@
   },
   {
     "fecha": "2026-10-22",
+    "sorteo": "Chontico Noche",
+    "resultado": "3588"
+  },
+  {
+    "fecha": "2026-10-22",
     "sorteo": "Chontico Día",
     "resultado": "2976"
   },
@@ -31,8 +41,23 @@
   },
   {
     "fecha": "2026-10-22",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "0996"
+  },
+  {
+    "fecha": "2026-10-22",
+    "sorteo": "BOGOTA",
+    "resultado": "9392"
+  },
+  {
+    "fecha": "2026-10-22",
     "sorteo": "Astro Sol",
     "resultado": "9117-SAGITARIO"
+  },
+  {
+    "fecha": "2026-10-22",
+    "sorteo": "Astro Luna",
+    "resultado": "9520-CAPRICORNIO"
   },
   {
     "fecha": "2026-10-21",
