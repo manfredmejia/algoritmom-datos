@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-10-26",
+    "sorteo": "TOLIMA",
+    "resultado": "0902"
+  },
+  {
+    "fecha": "2026-10-26",
     "sorteo": "Sinuano Día",
     "resultado": "2503"
   },
@@ -38,6 +43,16 @@
     "fecha": "2026-10-26",
     "sorteo": "Cafeterito Tarde",
     "resultado": "4980"
+  },
+  {
+    "fecha": "2026-10-26",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "6538"
+  },
+  {
+    "fecha": "2026-10-26",
+    "sorteo": "CUNDINAMARCA",
+    "resultado": "7099"
   },
   {
     "fecha": "2026-10-25",
