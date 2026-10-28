@@ -16,6 +16,11 @@
   },
   {
     "fecha": "2026-10-27",
+    "sorteo": "HUILA",
+    "resultado": "8262"
+  },
+  {
+    "fecha": "2026-10-27",
     "sorteo": "Dorado Tarde",
     "resultado": "1336"
   },
@@ -41,8 +46,23 @@
   },
   {
     "fecha": "2026-10-27",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "7782"
+  },
+  {
+    "fecha": "2026-10-27",
+    "sorteo": "CRUZ ROJA",
+    "resultado": "8663"
+  },
+  {
+    "fecha": "2026-10-27",
     "sorteo": "Astro Sol",
     "resultado": "9761-SAGITARIO"
+  },
+  {
+    "fecha": "2026-10-27",
+    "sorteo": "Astro Luna",
+    "resultado": "9906-LIBRA"
   },
   {
     "fecha": "2026-10-26",
