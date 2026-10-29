@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-10-28",
+    "sorteo": "VALLE",
+    "resultado": "7544"
+  },
+  {
+    "fecha": "2026-10-28",
     "sorteo": "Sinuano Día",
     "resultado": "0492"
   },
@@ -13,6 +18,16 @@
     "fecha": "2026-10-28",
     "sorteo": "Paisita Día",
     "resultado": "1989"
+  },
+  {
+    "fecha": "2026-10-28",
+    "sorteo": "META",
+    "resultado": "7443"
+  },
+  {
+    "fecha": "2026-10-28",
+    "sorteo": "MANIZALES",
+    "resultado": "4241"
   },
   {
     "fecha": "2026-10-28",
@@ -41,8 +56,18 @@
   },
   {
     "fecha": "2026-10-28",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "8860"
+  },
+  {
+    "fecha": "2026-10-28",
     "sorteo": "Astro Sol",
     "resultado": "6334-PISCIS"
+  },
+  {
+    "fecha": "2026-10-28",
+    "sorteo": "Astro Luna",
+    "resultado": "7047-PISCIS"
   },
   {
     "fecha": "2026-10-27",
