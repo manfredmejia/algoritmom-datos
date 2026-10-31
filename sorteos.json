@@ -6,6 +6,16 @@
   },
   {
     "fecha": "2026-10-30",
+    "sorteo": "SANTANDER",
+    "resultado": "8037"
+  },
+  {
+    "fecha": "2026-10-30",
+    "sorteo": "RISARALDA",
+    "resultado": "3292"
+  },
+  {
+    "fecha": "2026-10-30",
     "sorteo": "Paisita Noche",
     "resultado": "4242"
   },
@@ -13,6 +23,11 @@
     "fecha": "2026-10-30",
     "sorteo": "Paisita Día",
     "resultado": "1882"
+  },
+  {
+    "fecha": "2026-10-30",
+    "sorteo": "MEDELLIN",
+    "resultado": "2168"
   },
   {
     "fecha": "2026-10-30",
@@ -38,6 +53,16 @@
     "fecha": "2026-10-30",
     "sorteo": "Cafeterito Tarde",
     "resultado": "5020"
+  },
+  {
+    "fecha": "2026-10-30",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "9602"
+  },
+  {
+    "fecha": "2026-10-30",
+    "sorteo": "Astro Luna",
+    "resultado": "2259-VIRGO"
   },
   {
     "fecha": "2026-10-29",
