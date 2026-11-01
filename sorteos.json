@@ -26,6 +26,11 @@
   },
   {
     "fecha": "2026-10-31",
+    "sorteo": "Chontico Noche",
+    "resultado": "0446"
+  },
+  {
+    "fecha": "2026-10-31",
     "sorteo": "Chontico Día",
     "resultado": "4935"
   },
@@ -36,8 +41,28 @@
   },
   {
     "fecha": "2026-10-31",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "9494"
+  },
+  {
+    "fecha": "2026-10-31",
+    "sorteo": "CAUCA",
+    "resultado": "1355"
+  },
+  {
+    "fecha": "2026-10-31",
+    "sorteo": "BOYACA",
+    "resultado": "5748"
+  },
+  {
+    "fecha": "2026-10-31",
     "sorteo": "Astro Sol",
     "resultado": "6628-TAURO"
+  },
+  {
+    "fecha": "2026-10-31",
+    "sorteo": "Astro Luna",
+    "resultado": "2522-LEO"
   },
   {
     "fecha": "2026-10-30",
