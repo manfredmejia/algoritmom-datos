@@ -6,12 +6,47 @@ import requests
 from bs4 import BeautifulSoup
 
 
+
 def obtener_hora_colombia():
     """Retorna la fecha y hora actual en zona horaria de Colombia (UTC-5)."""
     return datetime.utcnow() - timedelta(hours=5)
 
 
 AÑO_ACTUAL = str(obtener_hora_colombia().year)
+
+def calcular_pascua(anio):
+    a = anio % 19
+    b = anio // 100
+    c = anio % 100
+    d = b // 4
+    e = b % 4
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i = c // 4
+    k = c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    mes = (h + l - 7 * m + 114) // 31
+    dia = ((h + l - 7 * m + 114) % 31) + 1
+    return datetime(anio, mes, dia)
+
+def es_festivo_colombia(fecha_dt):
+    anio = fecha_dt.year
+    mes = fecha_dt.month
+    dia = fecha_dt.day
+    fijos = [(1, 1), (5, 1), (7, 20), (8, 7), (12, 8), (12, 25)]
+    if (mes, dia) in fijos: return True
+    pascua = calcular_pascua(anio)
+    if fecha_dt.date() in [(pascua - timedelta(days=3)).date(), (pascua - timedelta(days=2)).date()]: return True
+    emiliani_fijos = [(1, 6), (3, 19), (6, 29), (8, 15), (10, 12), (11, 1), (11, 11)]
+    for m, d in emiliani_fijos:
+        f_orig = datetime(anio, m, d)
+        f_festivo = f_orig + timedelta(days=(7 - f_orig.weekday()) % 7)
+        if fecha_dt.date() == f_festivo.date(): return True
+    for offset in [43, 64, 71]:
+        if fecha_dt.date() == (pascua + timedelta(days=offset)).date(): return True
+    return False
 
 REGLAS_LOTERIAS = [
     ("CHONTICO DIA", "Chontico Día"),
@@ -194,10 +229,21 @@ def ajustar_fecha_segun_dia_oficial(sorteo, fecha_str):
         try:
             dt = datetime.strptime(fecha_str, "%Y-%m-%d")
             if dt.weekday() not in dias_permitidos:
-                for i in range(1, 7):
+                # Buscamos cuándo fue el último día oficial que le correspondía en el calendario
+                for i in range(1, 8):
                     dt_prev = dt - timedelta(days=i)
                     if dt_prev.weekday() in dias_permitidos:
-                        return dt_prev.strftime("%Y-%m-%d")
+                        # ¿Ese día oficial fue festivo en Colombia?
+                        if es_festivo_colombia(dt_prev):
+                            # Si fue festivo, la lotería SE CORRE al DÍA SIGUIENTE HÁBIL
+                            dt_siguiente = dt_prev + timedelta(days=1)
+                            # Bucle por si se cruzan dos festivos seguidos (ej. Jueves/Viernes Santo)
+                            while es_festivo_colombia(dt_siguiente):
+                                dt_siguiente += timedelta(days=1)
+                            return dt_siguiente.strftime("%Y-%m-%d")
+                        else:
+                            # No fue festivo, forzamos al día oficial estricto
+                            return dt_prev.strftime("%Y-%m-%d")
         except Exception as e:
             print(f"[REAJUSTE FECHA ERROR] {e}")
 
