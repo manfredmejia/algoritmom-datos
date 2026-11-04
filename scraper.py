@@ -117,15 +117,29 @@ def extraer_signo(texto):
 
 
 def extraer_fecha_de_encabezado_texto(texto):
-    match = re.search(
-        r"(\d{1,2})\s+DE\s+([A-Z]+)\s+DE\s+(\d{4})", texto, re.IGNORECASE
+    """Motor Regex mejorado para capturar múltiples formatos de fecha web."""
+    # 1. Formato texto (Ej: 03 DE NOVIEMBRE DE 2026, 3 Noviembre 2026, 03 del noviembre 2026)
+    match_texto = re.search(
+        r"(\d{1,2})\s*(?:DE|DEL)?\s*([A-Z]+)\s*(?:DE|DEL)?\s*(\d{4})", 
+        texto, 
+        re.IGNORECASE
     )
-    if match:
-        dia = match.group(1).zfill(2)
-        mes_nom = match.group(2).lower()
-        año = match.group(3)
+    if match_texto:
+        dia = match_texto.group(1).zfill(2)
+        mes_nom = match_texto.group(2).lower()
+        año = match_texto.group(3)
         if mes_nom in MESES:
             return f"{año}-{MESES[mes_nom]}-{dia}"
+
+    # 2. Formato numérico (Ej: 03/11/2026, 03-11-2026, 03.11.2026)
+    match_num = re.search(r"\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})\b", texto)
+    if match_num:
+        dia = match_num.group(1).zfill(2)
+        mes = match_num.group(2).zfill(2)
+        año = match_num.group(3)
+        if 1 <= int(mes) <= 12:
+            return f"{año}-{mes}-{dia}"
+            
     return None
 
 
@@ -199,7 +213,17 @@ def extraer_resultados_chancehoy():
         res = requests.get(url, headers=headers, timeout=12)
         if res.status_code == 200:
             soup = BeautifulSoup(res.text, "html.parser")
-            fecha_defecto_hoy = obtener_hora_colombia().strftime("%Y-%m-%d")
+            
+            # 🔥 CORRECCIÓN: Buscar la fecha global leyendo toda la página primero
+            txt_pagina = soup.get_text(" ", strip=True)
+            fecha_global = extraer_fecha_de_encabezado_texto(txt_pagina)
+            
+            if not fecha_global:
+                fecha_global = obtener_hora_colombia().strftime("%Y-%m-%d")
+                print("[CHANCEHOY] Alerta: No se detectó fecha en la web. Forzando fecha de PC.")
+            else:
+                print(f"[CHANCEHOY] Fecha real detectada en la página: {fecha_global}")
+
             tarjetas = soup.find_all("a", class_="box-post")
             sorteos_fecha_procesados = set()
 
@@ -215,7 +239,8 @@ def extraer_resultados_chancehoy():
                 if not sorteo:
                     continue
 
-                fecha_real = obtener_fecha_de_tarjeta(t, fecha_defecto_hoy)
+                # 🔥 Pasamos la fecha global detectada en lugar de la del PC
+                fecha_real = obtener_fecha_de_tarjeta(t, fecha_global)
                 fecha_real = ajustar_fecha_segun_dia_oficial(sorteo, fecha_real)
 
                 clave_procesada = f"{fecha_real}_{sorteo}"
