@@ -1,6 +1,11 @@
 [
   {
     "fecha": "2026-11-04",
+    "sorteo": "VALLE",
+    "resultado": "7932"
+  },
+  {
+    "fecha": "2026-11-04",
     "sorteo": "Sinuano Día",
     "resultado": "9658"
   },
@@ -13,6 +18,16 @@
     "fecha": "2026-11-04",
     "sorteo": "Paisita Día",
     "resultado": "6137"
+  },
+  {
+    "fecha": "2026-11-04",
+    "sorteo": "META",
+    "resultado": "0543"
+  },
+  {
+    "fecha": "2026-11-04",
+    "sorteo": "MANIZALES",
+    "resultado": "2570"
   },
   {
     "fecha": "2026-11-04",
@@ -48,6 +63,11 @@
     "fecha": "2026-11-04",
     "sorteo": "Astro Sol",
     "resultado": "0780-LIBRA"
+  },
+  {
+    "fecha": "2026-11-04",
+    "sorteo": "Astro Luna",
+    "resultado": "4074-CAPRICORNIO"
   },
   {
     "fecha": "2026-11-03",
