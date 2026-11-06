@@ -46,8 +46,18 @@
   },
   {
     "fecha": "2026-11-05",
+    "sorteo": "BOGOTA",
+    "resultado": "0387"
+  },
+  {
+    "fecha": "2026-11-05",
     "sorteo": "Astro Sol",
     "resultado": "7032-CANCER"
+  },
+  {
+    "fecha": "2026-11-05",
+    "sorteo": "Astro Luna",
+    "resultado": "5179-CANCER"
   },
   {
     "fecha": "2026-11-04",
