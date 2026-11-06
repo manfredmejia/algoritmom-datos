@@ -1,5 +1,55 @@
 [
   {
+    "fecha": "2026-11-05",
+    "sorteo": "Sinuano Día",
+    "resultado": "9760"
+  },
+  {
+    "fecha": "2026-11-05",
+    "sorteo": "Paisita Noche",
+    "resultado": "2320"
+  },
+  {
+    "fecha": "2026-11-05",
+    "sorteo": "Paisita Día",
+    "resultado": "6594"
+  },
+  {
+    "fecha": "2026-11-05",
+    "sorteo": "Dorado Tarde",
+    "resultado": "1651"
+  },
+  {
+    "fecha": "2026-11-05",
+    "sorteo": "Dorado Mañana",
+    "resultado": "2781"
+  },
+  {
+    "fecha": "2026-11-05",
+    "sorteo": "Chontico Noche",
+    "resultado": "6974"
+  },
+  {
+    "fecha": "2026-11-05",
+    "sorteo": "Chontico Día",
+    "resultado": "0158"
+  },
+  {
+    "fecha": "2026-11-05",
+    "sorteo": "Cafeterito Tarde",
+    "resultado": "7086"
+  },
+  {
+    "fecha": "2026-11-05",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "0697"
+  },
+  {
+    "fecha": "2026-11-05",
+    "sorteo": "Astro Sol",
+    "resultado": "7032-CANCER"
+  },
+  {
     "fecha": "2026-11-04",
     "sorteo": "VALLE",
     "resultado": "7932"
@@ -144,7 +194,6 @@
     "sorteo": "Astro Luna",
     "resultado": "6991-GEMINIS"
   },
- 
   {
     "fecha": "2026-11-02",
     "sorteo": "Sinuano Día",
@@ -175,7 +224,6 @@
     "sorteo": "Cafeterito Noche",
     "resultado": "2458"
   },
- 
   {
     "fecha": "2026-11-02",
     "sorteo": "Astro Luna",
