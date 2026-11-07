@@ -6,6 +6,16 @@
   },
   {
     "fecha": "2026-11-06",
+    "sorteo": "SANTANDER",
+    "resultado": "7151"
+  },
+  {
+    "fecha": "2026-11-06",
+    "sorteo": "RISARALDA",
+    "resultado": "8434"
+  },
+  {
+    "fecha": "2026-11-06",
     "sorteo": "Paisita Noche",
     "resultado": "5932"
   },
@@ -13,6 +23,11 @@
     "fecha": "2026-11-06",
     "sorteo": "Paisita Día",
     "resultado": "8629"
+  },
+  {
+    "fecha": "2026-11-06",
+    "sorteo": "MEDELLIN",
+    "resultado": "5609"
   },
   {
     "fecha": "2026-11-06",
@@ -48,6 +63,11 @@
     "fecha": "2026-11-06",
     "sorteo": "Astro Sol",
     "resultado": "8953-SAGITARIO"
+  },
+  {
+    "fecha": "2026-11-06",
+    "sorteo": "Astro Luna",
+    "resultado": "6675-TAURO"
   },
   {
     "fecha": "2026-11-05",
