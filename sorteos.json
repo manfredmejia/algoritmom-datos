@@ -26,6 +26,11 @@
   },
   {
     "fecha": "2026-11-07",
+    "sorteo": "Chontico Noche",
+    "resultado": "8429"
+  },
+  {
+    "fecha": "2026-11-07",
     "sorteo": "Chontico Día",
     "resultado": "4434"
   },
@@ -41,8 +46,23 @@
   },
   {
     "fecha": "2026-11-07",
+    "sorteo": "CAUCA",
+    "resultado": "2073"
+  },
+  {
+    "fecha": "2026-11-07",
+    "sorteo": "BOYACA",
+    "resultado": "1552"
+  },
+  {
+    "fecha": "2026-11-07",
     "sorteo": "Astro Sol",
     "resultado": "9185-LIBRA"
+  },
+  {
+    "fecha": "2026-11-07",
+    "sorteo": "Astro Luna",
+    "resultado": "4692-VIRGO"
   },
   {
     "fecha": "2026-11-06",
