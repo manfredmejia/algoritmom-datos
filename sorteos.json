@@ -16,6 +16,11 @@
   },
   {
     "fecha": "2026-11-10",
+    "sorteo": "HUILA",
+    "resultado": "4988"
+  },
+  {
+    "fecha": "2026-11-10",
     "sorteo": "Dorado Tarde",
     "resultado": "1154"
   },
@@ -46,8 +51,18 @@
   },
   {
     "fecha": "2026-11-10",
+    "sorteo": "CRUZ ROJA",
+    "resultado": "7341"
+  },
+  {
+    "fecha": "2026-11-10",
     "sorteo": "Astro Sol",
     "resultado": "3717-ACUARIO"
+  },
+  {
+    "fecha": "2026-11-10",
+    "sorteo": "Astro Luna",
+    "resultado": "9400-LEO"
   },
   {
     "fecha": "2026-11-09",
