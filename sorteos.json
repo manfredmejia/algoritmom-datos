@@ -16,6 +16,11 @@
   },
   {
     "fecha": "2026-11-11",
+    "sorteo": "META",
+    "resultado": "5273"
+  },
+  {
+    "fecha": "2026-11-11",
     "sorteo": "Dorado Tarde",
     "resultado": "5078"
   },
@@ -38,6 +43,11 @@
     "fecha": "2026-11-11",
     "sorteo": "Cafeterito Tarde",
     "resultado": "8287"
+  },
+  {
+    "fecha": "2026-11-11",
+    "sorteo": "Cafeterito Noche",
+    "resultado": "1847"
   },
   {
     "fecha": "2026-11-11",
