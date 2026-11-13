@@ -46,8 +46,18 @@
   },
   {
     "fecha": "2026-11-12",
+    "sorteo": "BOGOTA",
+    "resultado": "1970"
+  },
+  {
+    "fecha": "2026-11-12",
     "sorteo": "Astro Sol",
     "resultado": "6313-GEMINIS"
+  },
+  {
+    "fecha": "2026-11-12",
+    "sorteo": "Astro Luna",
+    "resultado": "7279-ACUARIO"
   },
   {
     "fecha": "2026-11-11",
