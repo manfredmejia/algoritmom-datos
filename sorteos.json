@@ -6,6 +6,16 @@
   },
   {
     "fecha": "2026-11-13",
+    "sorteo": "SANTANDER",
+    "resultado": "5198"
+  },
+  {
+    "fecha": "2026-11-13",
+    "sorteo": "RISARALDA",
+    "resultado": "8362"
+  },
+  {
+    "fecha": "2026-11-13",
     "sorteo": "Paisita Noche",
     "resultado": "4175"
   },
@@ -13,6 +23,11 @@
     "fecha": "2026-11-13",
     "sorteo": "Paisita Día",
     "resultado": "6333"
+  },
+  {
+    "fecha": "2026-11-13",
+    "sorteo": "MEDELLIN",
+    "resultado": "5724"
   },
   {
     "fecha": "2026-11-13",
@@ -43,6 +58,11 @@
     "fecha": "2026-11-13",
     "sorteo": "Cafeterito Noche",
     "resultado": "1421"
+  },
+  {
+    "fecha": "2026-11-13",
+    "sorteo": "Astro Luna",
+    "resultado": "4866-LIBRA"
   },
   {
     "fecha": "2026-11-12",
