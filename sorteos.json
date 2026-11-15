@@ -26,6 +26,11 @@
   },
   {
     "fecha": "2026-11-14",
+    "sorteo": "Chontico Noche",
+    "resultado": "0410"
+  },
+  {
+    "fecha": "2026-11-14",
     "sorteo": "Chontico Día",
     "resultado": "2953"
   },
@@ -41,8 +46,23 @@
   },
   {
     "fecha": "2026-11-14",
+    "sorteo": "CAUCA",
+    "resultado": "3633"
+  },
+  {
+    "fecha": "2026-11-14",
+    "sorteo": "BOYACA",
+    "resultado": "4483"
+  },
+  {
+    "fecha": "2026-11-14",
     "sorteo": "Astro Sol",
     "resultado": "1923-ARIES"
+  },
+  {
+    "fecha": "2026-11-14",
+    "sorteo": "Astro Luna",
+    "resultado": "2511-GEMINIS"
   },
   {
     "fecha": "2026-11-13",
