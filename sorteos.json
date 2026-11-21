@@ -6,6 +6,16 @@
   },
   {
     "fecha": "2026-11-20",
+    "sorteo": "SANTANDER",
+    "resultado": "5649"
+  },
+  {
+    "fecha": "2026-11-20",
+    "sorteo": "RISARALDA",
+    "resultado": "5781"
+  },
+  {
+    "fecha": "2026-11-20",
     "sorteo": "Paisita Noche",
     "resultado": "3955"
   },
@@ -13,6 +23,11 @@
     "fecha": "2026-11-20",
     "sorteo": "Paisita Día",
     "resultado": "2291"
+  },
+  {
+    "fecha": "2026-11-20",
+    "sorteo": "MEDELLIN",
+    "resultado": "6586"
   },
   {
     "fecha": "2026-11-20",
