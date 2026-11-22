@@ -26,6 +26,11 @@
   },
   {
     "fecha": "2026-11-21",
+    "sorteo": "Chontico Noche",
+    "resultado": "2838"
+  },
+  {
+    "fecha": "2026-11-21",
     "sorteo": "Chontico Día",
     "resultado": "9726"
   },
@@ -41,8 +46,23 @@
   },
   {
     "fecha": "2026-11-21",
+    "sorteo": "CAUCA",
+    "resultado": "2151"
+  },
+  {
+    "fecha": "2026-11-21",
+    "sorteo": "BOYACA",
+    "resultado": "4914"
+  },
+  {
+    "fecha": "2026-11-21",
     "sorteo": "Astro Sol",
     "resultado": "7846-VIRGO"
+  },
+  {
+    "fecha": "2026-11-21",
+    "sorteo": "Astro Luna",
+    "resultado": "7745-PISCIS"
   },
   {
     "fecha": "2026-11-20",
